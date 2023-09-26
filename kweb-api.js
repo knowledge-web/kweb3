@@ -50,12 +50,12 @@ export function selectNode (id) { // selects the node (fetches neighbors, etc. t
   return { node, nodes: allNodes, links: allLinks }
 }
 
-export function hoverNode (id) { // id === null to clear
+export function hoverNode (id, origin) { // id === null to clear
   const node = id ? nodes.find(node => node.id === id) : {}
   // hoveredNode = mainNode
 
   const nodeHoveredEvent = new CustomEvent('nodeHovered', {
-    detail: { node }
+    detail: { node, origin }
   })
   window.dispatchEvent(nodeHoveredEvent)
 
@@ -67,8 +67,8 @@ window.addEventListener('selectNode', event => {
   selectNode(node.id)
 })
 window.addEventListener('hoverNode', event => {
-  const { node } = event.detail
-  hoverNode(node?.id)
+  const { node, origin } = event.detail
+  hoverNode(node?.id, origin)
 })
 
 // load all data unless body attribute = "false"

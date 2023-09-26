@@ -10,6 +10,8 @@ class MapComponent extends HTMLElement {
     super()
     this.map = null
     this.markers = []
+    this.selected = {} // { node, nodes }
+    this.hovered = {}
   }
 
   connectedCallback () {
@@ -18,6 +20,7 @@ class MapComponent extends HTMLElement {
     this.loadGoogleMapsScript().then(() => {
       this.initializeMap()
       this.listenToNodeSelected()
+      this.listentoNodeHovered()
     }).catch(err => {
       console.error('Failed to load Google Maps:', err)
     })
@@ -50,21 +53,60 @@ class MapComponent extends HTMLElement {
 
   listenToNodeSelected () {
     window.addEventListener('nodeSelected', event => {
-      const { node, nodes } = event.detail
-      this.clearMap() // Clear previous pins if any
+      this.selected = event.detail
+      this.showPins(this.selected)
+    })
+  }
 
-      // Show selected node
-      if (node?.birth?.place?.coordinates) {
-        this.showPlaceOnMap(node, node.birth.place.coordinates, false)
-        this.panToCoordinates(node.birth.place.coordinates) // Pan to main pin
+  showPins ({ node, nodes }) {
+    this.clearMap() // Clear previous pins if any
+
+    // Show selected node
+    if (node?.birth?.place?.coordinates) {
+      this.showPlaceOnMap(node, node.birth.place.coordinates, false)
+      this.panToCoordinates(node.birth.place.coordinates) // Pan to main pin
+    }
+
+    // Show additional nodes
+    nodes.forEach(n => {
+      if (n !== node && n?.birth?.place?.coordinates) {
+        this.showPlaceOnMap(n, n.birth.place.coordinates, true)
       }
+    })
+  }
 
-      // Show additional nodes
-      nodes.forEach(n => {
-        if (n !== node && n?.birth?.place?.coordinates) {
-          this.showPlaceOnMap(n, n.birth.place.coordinates, true)
-        }
-      })
+  listentoNodeHovered () {
+    const defaultIcon = {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 5,
+      fillColor: '#808080', // Gray color
+      fillOpacity: 1.0,
+      strokeWeight: 0
+    }
+
+    const hoverIcon = {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 5,
+      fillColor: '#DD0000', // Red color
+      fillOpacity: 1.0,
+      strokeWeight: 0
+    }
+
+    window.addEventListener('nodeHovered', event => {
+      let { node, origin } = event.detail
+      if (origin === 'map') return
+      let marker = this.markers.find(marker => marker.title === node.name)
+      if (!node.id) {
+        node = this.selected.node // pan to original node instead
+        marker = this.markers.find(marker => marker.title === (this.hovered || {}).name)
+        if (marker && marker.secundary) marker.setIcon(defaultIcon)
+      } else {
+        if (marker && marker.secundary) marker.setIcon(hoverIcon)
+      }
+      if (node?.birth?.place?.coordinates) {
+        this.panToCoordinates(node.birth.place.coordinates) // Pan to pin
+      }
+      this.hovered = node
     })
   }
 
@@ -75,33 +117,45 @@ class MapComponent extends HTMLElement {
 
   showPlaceOnMap (node, [lat, lng], secundary = false) {
     const position = { lat, lng }
+
+    const defaultIcon = {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 5,
+      fillColor: '#808080', // Gray color
+      fillOpacity: 1.0,
+      strokeWeight: 0
+    }
+
+    const hoverIcon = {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 5,
+      fillColor: '#DD0000', // Red color
+      fillOpacity: 1.0,
+      strokeWeight: 0
+    }
+
     const markerOptions = {
       title: node.name,
       position,
-      map: this.map
-    }
-
-    if (secundary) {
-      markerOptions.icon = {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 5, // Adjust the scale to change the size of the marker
-        fillColor: '#808080', // Gray color
-        fillOpacity: 1.0,
-        strokeWeight: 0
-      }
+      map: this.map,
+      icon: secundary ? defaultIcon : null,
+      secundary
     }
 
     const marker = new google.maps.Marker(markerOptions)
+
     marker.addListener('click', () => {
-      const event = new CustomEvent('selectNode', { detail: { node } })
+      const event = new CustomEvent('selectNode', { detail: { node, origin: 'map' } })
       window.dispatchEvent(event)
     })
     marker.addListener('mouseover', () => {
-      const event = new CustomEvent('hoverNode', { detail: { node } })
+      if (secundary) marker.setIcon(hoverIcon)
+      const event = new CustomEvent('hoverNode', { detail: { node, origin: 'map' } })
       window.dispatchEvent(event)
     })
     marker.addListener('mouseout', () => {
-      const event = new CustomEvent('hoverNode', { detail: { node: null } })
+      if (secundary) marker.setIcon(defaultIcon)
+      const event = new CustomEvent('hoverNode', { detail: { node: null, origin: 'map' } })
       window.dispatchEvent(event)
     })
     this.markers.push(marker)

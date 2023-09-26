@@ -1,23 +1,48 @@
 /* global ForceGraph3D */
-async function initGraph () {
-  const Graph = ForceGraph3D()
-  const graphDiv = document.getElementById('3d-graph')
 
-  const width = graphDiv.clientWidth
-  const height = graphDiv.clientHeight
-  Graph(graphDiv)
-    .width(width)
-    .height(height)
-    .graphData({ nodes: [], links: [] })
+let graph = null
+async function initGraph (data) {
+  const elem = document.getElementById('3d-graph')
+
+  // const width = elem.clientWidth
+  // const height = elem.clientHeight
+
+  graph = ForceGraph3D()(elem)
+    // .width(width)
+    // .height(height)
+    .graphData(data)
     .nodeLabel('name')
-    .nodeAutoColorBy('name')
-
-  // this.shadowRoot.appendChild(graphDiv)
-
-  // Listen for the 'nodeSelected' event
-  window.addEventListener('nodeSelected', event => {
-    const { nodes, links } = event.detail
-    Graph.graphData({ nodes, links })
-  })
+    // .nodeAutoColorBy('name')
+    .enableNodeDrag(false)
+    .onNodeClick(node => {
+      const event = new CustomEvent('selectNode', { detail: { node } })
+      window.dispatchEvent(event)
+    })
+    .onNodeHover((node, prevNode) => {
+      // console.log('hover', node, prevNode)
+      const event = new CustomEvent('hoverNode', { detail: { node } })
+      window.dispatchEvent(event)
+    })
 }
-initGraph()
+
+window.addEventListener('nodeSelected', event => {
+  const { nodes, links } = event.detail
+  if (!graph) return initGraph({ nodes, links })
+  graph.graphData({ nodes, links })
+})
+
+// Test by triggering custom event like:
+// window.dispatchEvent(new CustomEvent('nodeSelected', {
+//   detail: {
+//     node: { id: 'node1', name: 'node1' },
+//     nodes: [
+//       { id: 'node1', name: 'node1' },
+//       { id: 'node2', name: 'node2' },
+//       { id: 'node3', name: 'node3' }
+//     ],
+//     links: [
+//       { source: 'node1', target: 'node2' },
+//       { source: 'node1', target: 'node3' }
+//     ]
+//   }
+// }))

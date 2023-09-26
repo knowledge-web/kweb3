@@ -5,6 +5,6 @@
 # 2023-09-26 Log
 
 ```
-./data    <-- https://kweb-api-py.gorbiz.repl.co/files/all.json
-./data/md <-- https://kweb-api-py.gorbiz.repl.co/files/content.zip
+./data    <-- all.json
+./data/md <-- content.zip (extracted)
 ```
