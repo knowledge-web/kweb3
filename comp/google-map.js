@@ -41,7 +41,7 @@ class MapComponent extends HTMLElement {
 
   async initializeMap () {
     const mapOptions = {
-      zoom: 8,
+      zoom: 5,
       center: { lat: 0, lng: 0 }, // Initialize center at (0, 0)
       disableDefaultUI: true // Disable default UI controls
     }
