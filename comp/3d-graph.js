@@ -10,6 +10,7 @@ async function initGraph (data) {
   graph = ForceGraph3D()(elem)
     // .width(width)
     // .height(height)
+    .backgroundColor('rgba(0,0,0,0)')
     .graphData(data)
     .nodeLabel('name')
     // .nodeAutoColorBy('name')
