@@ -1,17 +1,19 @@
+/* eslint-env browser */
+/* global google */
 window.initMapKweb123 = function () {
   document.querySelectorAll('map-component').forEach(map => {
     map.initializeMap()
   })
-  console.log('dfdsfsdf')
 }
 class MapComponent extends HTMLElement {
   constructor () {
     super()
     this.map = null
+    this.markers = []
   }
 
   connectedCallback () {
-    this.apiKey = this.getAttribute('api-key') || 'default_api_key';
+    this.apiKey = this.getAttribute('api-key') || 'default_api_key'
 
     this.loadGoogleMapsScript().then(() => {
       this.initializeMap()
@@ -40,30 +42,63 @@ class MapComponent extends HTMLElement {
   async initializeMap () {
     const mapOptions = {
       zoom: 8,
-      center: { lat: 0, lng: 0 } // Initialize center at (0, 0)
+      center: { lat: 0, lng: 0 }, // Initialize center at (0, 0)
+      disableDefaultUI: true // Disable default UI controls
     }
-    this.map = new google.maps.Map(this, mapOptions)
+    this.map = new window.google.maps.Map(this, mapOptions)
   }
 
   listenToNodeSelected () {
     window.addEventListener('nodeSelected', event => {
-      const { node } = event.detail
-      if (node && node.birth && node.birth.place && node.birth.place.coordinates) {
-        this.showPlaceOnMap(node.birth.place.coordinates)
-      } else {
-        this.clearMap()
+      const { node, nodes } = event.detail
+      this.clearMap() // Clear previous pins if any
+
+      // Show selected node
+      if (node?.birth?.place?.coordinates) {
+        this.showPlaceOnMap(node, node.birth.place.coordinates, false)
       }
+
+      // Show additional nodes
+      nodes.forEach(n => {
+        if (n !== node && n?.birth?.place?.coordinates) {
+          this.showPlaceOnMap(n, n.birth.place.coordinates, true)
+        }
+      })
     })
   }
 
-  showPlaceOnMap ([lat, lng]) {
-    console.log('333', lat, lng)
+  showPlaceOnMap (node, [lat, lng], secundary = false) {
     const position = { lat, lng }
-    this.map.setCenter(position)
-    new google.maps.Marker({
+    const markerOptions = {
+      title: node.name,
       position,
       map: this.map
+    }
+
+    if (secundary) {
+      markerOptions.icon = {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 5, // Adjust the scale to change the size of the marker
+        fillColor: '#808080', // Gray color
+        fillOpacity: 1.0,
+        strokeWeight: 0
+      }
+    }
+
+    const marker = new google.maps.Marker(markerOptions)
+    marker.addListener('click', () => {
+      const event = new CustomEvent('selectNode', { detail: { node } })
+      window.dispatchEvent(event)
     })
+    marker.addListener('mouseover', () => {
+      const event = new CustomEvent('hoverNode', { detail: { node } })
+      window.dispatchEvent(event)
+    })
+    marker.addListener('mouseout', () => {
+      const event = new CustomEvent('hoverNode', { detail: { node: null } })
+      window.dispatchEvent(event)
+    })
+    this.markers.push(marker)
   }
 
   clearMap () {
@@ -71,6 +106,8 @@ class MapComponent extends HTMLElement {
     if (this.map) {
       this.map.setCenter({ lat: 0, lng: 0 })
       this.map.setZoom(0)
+      this.markers.forEach(marker => marker.setMap(null))
+      this.markers = []
     }
   }
 }

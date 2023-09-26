@@ -44,18 +44,30 @@
       const { nodes, links } = event.detail
       console.log({ nodes: nodes.length, links: links.length })
 
-      const res = selectNode('335994d7-2aff-564c-9c20-d2c362e82f8c') // The Knowledge Web (node)
+      const rootId = '335994d7-2aff-564c-9c20-d2c362e82f8c' // The Knowledge Web (node)
+      const id = window.location.hash.split('#id=')[1] || rootId
+      selectNode(id)
+
+      window.addEventListener('hashchange', function(event) {
+        const id = window.location.hash.split('#id=')[1] || rootId
+        selectNode(id)
+      })
     })
 
+    let selected = {}
     window.addEventListener('nodeSelected', function(event) {
       const { node, nodes, links } = event.detail
+      selected = node
       console.log(`Node selected: ${node.name}`)
       document.querySelector('h1.title .text').innerHTML = node.name
     })
 
     window.addEventListener('nodeHovered', function(event) {
-      const { node } = event.detail
-      console.log(`Node hovered: ${node && node.id}`)
+      let { node } = event.detail
+      if (node.id === selected.id) return
+      console.log(`Node hovered: ${node.name}`)
+      const show = node.id ? node : selected
+      document.querySelector('h1.title .text').innerHTML = show.name || ''
     })
   </script>
 </body>

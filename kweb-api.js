@@ -44,7 +44,7 @@ export function selectNode (id) { // selects the node (fetches neighbors, etc. t
   })
   window.dispatchEvent(nodeSelectedEvent)
 
-  return { node: node, nodes: allNodes, links: allLinks }
+  return { node, nodes: allNodes, links: allLinks }
 }
 
 export function hoverNode (id) { // id === null to clear
@@ -58,6 +58,15 @@ export function hoverNode (id) { // id === null to clear
 
   return { node }
 }
+
+window.addEventListener('selectNode', event => {
+  const { node } = event.detail
+  selectNode(node.id)
+})
+window.addEventListener('hoverNode', event => {
+  const { node } = event.detail
+  hoverNode(node?.id)
+})
 
 // load all data unless body attribute = "false"
 if (document.body.getAttribute('data-auto-load') !== 'false') {
