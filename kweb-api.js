@@ -1,6 +1,7 @@
 let nodes = {}
 let links = {}
 // let selectedNode = {}
+// let hoveredNode = {}
 
 export async function loadData () {
   try {
@@ -20,42 +21,42 @@ export async function loadData () {
   return { nodes, links }
 }
 
-export function selectNode (nodeId) { // selects the node (fetches neighbors, etc. triggers event etc)
-  const mainNode = nodes.find(node => node.id === nodeId)
-  // selectedNode = mainNode
-  const neighborLinks = links.filter(link => link.source === nodeId || link.target === nodeId)
-  console.log(nodeId, 'neighborLinks', neighborLinks)
+export function selectNode (id) { // selects the node (fetches neighbors, etc. triggers event etc)
+  const node = nodes.find(node => node.id === id)
+  // selectedNode = node
+  const neighborLinks = links.filter(link => link.source === id || link.target === id)
   const neighborIds = new Set()
   neighborLinks.forEach(link => {
     neighborIds.add(link.source)
     neighborIds.add(link.target)
   })
-  neighborIds.delete(nodeId)
+  neighborIds.delete(id)
 
   const neighbors = Array.from(neighborIds).map(id => nodes.find(node => node.id === id))
 
   const additionalLinks = links.filter(link => neighborIds.has(link.source) && neighborIds.has(link.target))
 
   const allLinks = [...neighborLinks, ...additionalLinks]
-  const allNodes = [mainNode, ...neighbors]
+  const allNodes = [node, ...neighbors]
 
   const nodeSelectedEvent = new CustomEvent('nodeSelected', {
-    detail: { node: mainNode, nodes: allNodes, links: allLinks }
+    detail: { node, nodes: allNodes, links: allLinks }
   })
   window.dispatchEvent(nodeSelectedEvent)
 
-  return { node: mainNode, nodes: allNodes, links: allLinks }
+  return { node: node, nodes: allNodes, links: allLinks }
 }
 
-export function hoverNode (nodeId) {
-  const mainNode = nodes.find(node => node.id === nodeId)
+export function hoverNode (id) { // id === null to clear
+  const node = id ? nodes.find(node => node.id === id) : {}
+  // hoveredNode = mainNode
 
   const nodeHoveredEvent = new CustomEvent('nodeHovered', {
-    detail: { node: mainNode }
+    detail: { node }
   })
   window.dispatchEvent(nodeHoveredEvent)
 
-  return { node: mainNode }
+  return { node }
 }
 
 // load all data unless body attribute = "false"
