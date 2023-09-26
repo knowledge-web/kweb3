@@ -46,6 +46,7 @@ export function selectNode (id) { // selects the node (fetches neighbors, etc. t
   })
   window.dispatchEvent(nodeSelectedEvent)
 
+  window.location.hash = `#id=${id}` // NOTE will trigger an extra hashchange event :/
   return { node, nodes: allNodes, links: allLinks }
 }
 
