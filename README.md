@@ -1,0 +1,5 @@
+# Start
+
+```sh
+npx serve
+```

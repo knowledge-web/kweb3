@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>K-web</title>
+</head>
+<!-- <body data-auto-load="false"> -- to not auto fetch data -->
+<body>
+  <script type="module">
+    import { selectNode, hoverNode } from './kweb-api.js'
+
+    window.addEventListener('dataLoaded', function(event) {
+      const { nodes, links } = event.detail
+      console.log({ nodes: nodes.length, links: links.length })
+
+      const res = selectNode('335994d7-2aff-564c-9c20-d2c362e82f8c') // The Knowledge Web (node)
+    })
+
+    window.addEventListener('nodeSelected', function(event) {
+      const { node, nodes, links } = event.detail
+      console.log(`Node selected: ${node && node.id}`)
+    })
+
+    window.addEventListener('nodeHovered', function(event) {
+      const { node } = event.detail
+      console.log(`Node hovered: ${node && node.id}`)
+    })
+
+  </script>
+</body>
+</html>
