@@ -1,6 +1,6 @@
 let nodes = {}
 let links = {}
-// let selectedNode = {}
+let selectedNode = {}
 // let hoveredNode = {}
 
 export async function loadData () {
@@ -23,7 +23,9 @@ export async function loadData () {
 
 export function selectNode (id) { // selects the node (fetches neighbors, etc. triggers event etc)
   const node = nodes.find(node => node.id === id)
-  // selectedNode = node
+  if (!node) return console.error(`Node with id ${id} not found`)
+  if (node === selectedNode) return console.log(`Node with id ${id} already selected`)
+  selectedNode = node
   const neighborLinks = links.filter(link => link.source === id || link.target === id)
   const neighborIds = new Set()
   neighborLinks.forEach(link => {
@@ -71,8 +73,6 @@ window.addEventListener('hoverNode', event => {
 // load all data unless body attribute = "false"
 if (document.body.getAttribute('data-auto-load') !== 'false') {
   loadData().then(({ nodes, links }) => {
-    // console.log('Nodes:', nodes)
-    // console.log('Links:', links)
   }).catch(error => {
     console.error('Error:', error)
   })

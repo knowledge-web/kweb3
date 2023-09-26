@@ -56,6 +56,7 @@ class MapComponent extends HTMLElement {
       // Show selected node
       if (node?.birth?.place?.coordinates) {
         this.showPlaceOnMap(node, node.birth.place.coordinates, false)
+        this.panToCoordinates(node.birth.place.coordinates) // Pan to main pin
       }
 
       // Show additional nodes
@@ -65,6 +66,11 @@ class MapComponent extends HTMLElement {
         }
       })
     })
+  }
+
+  panToCoordinates (coordinates) {
+    const latLng = new google.maps.LatLng(coordinates[0], coordinates[1])
+    this.map.panTo(latLng)
   }
 
   showPlaceOnMap (node, [lat, lng], secundary = false) {
@@ -104,8 +110,8 @@ class MapComponent extends HTMLElement {
   clearMap () {
     // Clearing the map by setting it to null
     if (this.map) {
-      this.map.setCenter({ lat: 0, lng: 0 })
-      this.map.setZoom(0)
+      // this.map.setCenter({ lat: 0, lng: 0 })
+      // this.map.setZoom(0)
       this.markers.forEach(marker => marker.setMap(null))
       this.markers = []
     }

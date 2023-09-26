@@ -6,6 +6,7 @@
   <title>K-web</title>
 
   <script type="module" src="./comp/google-map.js"></script>
+  <!-- https://unpkg.com/3d-force-graph@1.72.3/dist/3d-force-graph.min.js -->
 
   <style>
     html, body {
@@ -57,6 +58,7 @@
     let selected = {}
     window.addEventListener('nodeSelected', function(event) {
       const { node, nodes, links } = event.detail
+      console.log({ node, links })
       selected = node
       console.log(`Node selected: ${node.name}`)
       document.querySelector('h1.title .text').innerHTML = node.name
