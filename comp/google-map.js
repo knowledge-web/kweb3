@@ -19,6 +19,13 @@ class MapComponent extends HTMLElement {
 
     this.loadGoogleMapsScript().then(() => {
       this.initializeMap()
+
+      const placeInfo = document.createElement('div')
+      placeInfo.id = 'placeInfo'
+      placeInfo.innerHTML = 'No location'
+      console.log(placeInfo)
+      this.appendChild(placeInfo)
+
       this.listenToNodeSelected()
       this.listentoNodeHovered()
     }).catch(err => {
@@ -58,6 +65,14 @@ class MapComponent extends HTMLElement {
     })
   }
 
+  setPlaceInfo (place) {
+    let text = '<span class="empty">[ no location data ]</span>'
+    if (place.name || place.country) text = [place.name, place.country].join(', ')
+    const placeInfo = document.querySelector('#placeInfo')
+    console.log(placeInfo)
+    placeInfo.innerHTML = text
+  }
+
   showPins ({ node, nodes }) {
     this.clearMap() // Clear previous pins if any
 
@@ -66,6 +81,7 @@ class MapComponent extends HTMLElement {
       this.showPlaceOnMap(node, node.birth.place.coordinates, false)
       this.panToCoordinates(node.birth.place.coordinates) // Pan to main pin
     }
+    this.setPlaceInfo(node?.birth?.place)
 
     // Show additional nodes
     nodes.forEach(n => {
@@ -103,6 +119,7 @@ class MapComponent extends HTMLElement {
       } else {
         if (marker && marker.secundary) marker.setIcon(hoverIcon)
       }
+      this.setPlaceInfo(node?.birth?.place)
       if (node?.birth?.place?.coordinates) {
         this.panToCoordinates(node.birth.place.coordinates) // Pan to pin
       }
