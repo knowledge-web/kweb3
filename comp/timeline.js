@@ -267,8 +267,9 @@ class HistoricalTimeline extends HTMLElement {
       }
       .hovered {
         fill: blue;
-        // stroke: blue;
-        stroke-width: 2px;
+        stroke: white;
+        stroke-width: 1px;
+        cursor: pointer;
       }
     `
     this.shadow.appendChild(style)
