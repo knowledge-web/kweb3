@@ -127,7 +127,7 @@
     window.addEventListener('nodeHovered', function(event) {
       let { node } = event.detail
       if (node.id === selected.id) return
-      console.log(`Node hovered: ${node.name}`)
+      // console.log(`Node hovered: ${node.name}`)
       const show = node.id ? node : selected
       document.querySelector('h1.title .text').innerHTML = show.name || ''
     })
