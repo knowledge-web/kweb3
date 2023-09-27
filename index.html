@@ -6,6 +6,8 @@
   <title>K-Web 0.3</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2285%22>🌐</text></svg>">
 
+  <script type="importmap">{ "imports": { "three": "https://unpkg.com/three/build/three.module.js" }}</script>
+
   <script type="module" src="./comp/google-map.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- TODO move to component -->
@@ -92,9 +94,24 @@
 <body>
   <h1 class="title"><span class="text">Loading...</span></h1>
   
+  <!-- TODO move to component -->
+  <style>
+    .node-label {
+      font-family: 'Droid Sans'; /* TODO improve? */
+      position: relative;
+      top: -1.5em;
+      cursor: pointer;
+    }
+
+    .node-label.hover {
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+  </style>
   <div id="3d-graph" ></div>
+  <script src="//unpkg.com/three"></script> <!-- TODO move to component -->
   <script src="//unpkg.com/3d-force-graph"></script> <!-- TODO move to component -->
-  <script src="./comp/3d-graph.js"></script>
+  <script src="./comp/3d-graph.js" type="module"></script>
 
   <google-map id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
 

@@ -1,4 +1,5 @@
 /* global ForceGraph3D */
+import { CSS2DRenderer, CSS2DObject } from '//unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js'
 
 function toMap (arr) {
   const map = {}
@@ -7,9 +8,10 @@ function toMap (arr) {
 }
 
 let graph = null
-async function initGraph (data, { selectedNode } = {}) {
+let selectedNode = null
+async function initGraph (data, options = {}) {
   const elem = document.getElementById('3d-graph')
-
+  selectedNode = options.selectedNode || null
   // NOTE Hover Effects ahead
   // cross-link node objects
   const map = toMap(data.nodes)
@@ -33,13 +35,19 @@ async function initGraph (data, { selectedNode } = {}) {
 
   // const width = elem.clientWidth
   // const height = elem.clientHeight
-  graph = ForceGraph3D()(elem)
+  graph = ForceGraph3D({
+    extraRenderers: [new CSS2DRenderer()]
+  })(elem)
     // .width(width)
     // .height(height)
-    .backgroundColor('rgba(0,0,0,0)')
-    .enableNodeDrag(false)
     .graphData(data)
-    .nodeLabel('name')
+    .backgroundColor('rgba(0,0,0,0)')
+    .warmupTicks(100)
+    .cooldownTicks(0)
+    .enableNodeDrag(false)
+    .nodeLabel('label')
+    .nodeRelSize(2)
+    .linkHoverPrecision(2)
     .nodeColor(node => {
       // node.color || 'rgba(255,255,255,0.8)'
       if (selectedNode && node.id === selectedNode.id) return 'steelblue'
@@ -49,6 +57,27 @@ async function initGraph (data, { selectedNode } = {}) {
     .linkWidth(link => highlightLinks.has(link) ? 1 : 0)
     // .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 0)
     // .linkDirectionalParticleWidth(1)
+
+    .nodeThreeObject(node => {
+      const nodeEl = document.createElement('div')
+      let html = node.iconId ? `<img class="icon icon-16" src="/data/${node.iconId}/icon.png" style="opacity: 1.0;" />` : ''
+      html += node.name
+      nodeEl.innerHTML = html
+
+      // const img = 'https://picsum.photos/seed/derp/150/150' // random profile image
+      // nodeEl.innerHTML = `${node.name}<br><img class="prof" src="${img}" />`
+      nodeEl.style.color = node.color || 'rgba(255,255,255,0.8)'
+      nodeEl.className = 'node-label'
+      // nodeEl.setAttribute('data-id', node.id)
+      // FIXME the below work but breaks scroll wheel zoom etc...
+      // nodeEl.style['pointer-events'] = 'all'
+      // nodeEl.addEventListener('pointerdown', () => { window.location.hash = `id=${node.id}` })
+      // nodeEl.addEventListener('pointerover', () => { nodeEl.classList.add('hover') })
+      // nodeEl.addEventListener('pointerout', () => { nodeEl.classList.remove('hover') })
+      return new CSS2DObject(nodeEl)
+    })
+    .nodeThreeObjectExtend(true)
+
     .onNodeHover((node, prevNode) => {
       const event = new CustomEvent('hoverNode', { detail: { node, origin: 'graph' } })
       window.dispatchEvent(event)
