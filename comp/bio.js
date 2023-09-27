@@ -49,6 +49,25 @@ class BioComponent extends HTMLElement {
       <h2>${node.name}</h2>
       <p>${html}</p>
     `
+
+    // Add hover events to all links with #id=<some-id>
+    const links = bio.querySelectorAll('a[href^="#id="]')
+    links.forEach(link => {
+      link.addEventListener('mouseover', function () {
+        const id = this.getAttribute('href').split('#id=')[1]
+        const node = { id }
+        const event = new CustomEvent('hoverNode', { detail: { node, origin: 'bio' } })
+        window.dispatchEvent(event)
+      })
+
+      link.addEventListener('mouseout', function () {
+        const id = this.getAttribute('href').split('#id=')[1]
+        const prevNode = { id }
+        const node = {}
+        const event = new CustomEvent('hoverNode', { detail: { node, prevNode, origin: 'bio' } })
+        window.dispatchEvent(event)
+      })
+    })
   }
 
   async fetchContent (node) {

@@ -20,7 +20,6 @@ async function initGraph (data) {
       window.dispatchEvent(event)
     })
     .onNodeHover((node, prevNode) => {
-      // console.log('hover', node, prevNode)
       const event = new CustomEvent('hoverNode', { detail: { node } })
       window.dispatchEvent(event)
     })

@@ -67,7 +67,6 @@ function Timeline (data) {
     d.birth = d.birth instanceof Date ? d.birth.getFullYear() : d.birth
     d.death = d.death instanceof Date ? d.death.getFullYear() : d.death
   })
-  console.log(data, 'data')
 
   // Calculate max of the death year and min of the birth year
   const maxYear = Math.max(...data.map((d) => d.death)) + 20
