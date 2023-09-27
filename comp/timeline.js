@@ -136,6 +136,7 @@ function Timeline (data) {
   // Create bars
   bars
     .append('rect')
+    .attr('data-id', (d) => d.id)
     .attr('x', (d) => xScale(d.birth))
     .attr('width', (d) => xScale(d.death) - xScale(d.birth))
     .attr('y', (d, i) => yScale(yPos[i]))
@@ -153,6 +154,24 @@ function Timeline (data) {
     .attr('fill', 'white')
     .attr('white-space', 'nowrap')
     .attr('text-overflow', 'ellipsis')
+
+  bars.on('click', function (event, d) {
+    const node = { id: d.id, name: d.name }
+    const ev = new CustomEvent('selectNode', { detail: { node, origin: 'timeline' } })
+    window.dispatchEvent(ev)
+  })
+
+  let prevNode = null // hovered node
+  bars.on('mouseover', function (event, d) {
+    const node = { id: d.id, name: d.name }
+    prevNode = node
+    const ev = new CustomEvent('hoverNode', { detail: { node, origin: 'timeline' } })
+    window.dispatchEvent(ev)
+  })
+  bars.on('mouseout', function (event, d) {
+    const ev = new CustomEvent('hoverNode', { detail: { node: {}, prevNode, origin: 'timeline' } })
+    window.dispatchEvent(ev)
+  })
 
   // Mouseover and mouseout events for scrolling labels and showing dates on the timeline
   // bars.on('mouseover', function (event, d) {
@@ -246,6 +265,11 @@ class HistoricalTimeline extends HTMLElement {
         display: block;
         background-color: #111;
       }
+      .hovered {
+        fill: blue;
+        // stroke: blue;
+        stroke-width: 2px;
+      }
     `
     this.shadow.appendChild(style)
 
@@ -267,72 +291,32 @@ class HistoricalTimeline extends HTMLElement {
 
     window.addEventListener('nodeSelected', event => {
       this.selected = event.detail
-      let data = this.selected.nodes.filter(node => node.birth.date && node.death.date)
-      data = data.map(node => { return { name: node.name, birth: fixDate(node.birth.date), death: fixDate(node.death.date) } })
+      let data = this.selected.nodes.filter(node => node.birth?.date && node.death?.date)
+      data = data.map(node => { return { id: node.id, name: node.name, birth: fixDate(node.birth.date), death: fixDate(node.death.date) } })
       this.render(data)
     })
 
     window.addEventListener('nodeHovered', event => {
-      const { node, origin } = event.detail
-      if (origin === 'timeline') return
+      const { node, prevNode, origin } = event.detail
+      // if (origin === 'timeline') return
+
+      this.svg.querySelectorAll('.hovered').forEach(elem => { // remove all existing 'hovered' classes
+        elem.classList.remove('hovered')
+      })
+
       this.hovered = node
-      // this.selectedSvg = this.svg
-      // TODO highlight node (don't replace timeline)
+      // find the node in the svg and highlight it
+      if (!node || !node.name) return
+      const elem = this.svg.querySelector(`[data-id="${node.id}"]`)
+      if (!elem) return
+      elem.classList.add('hovered')
     })
   }
 
   render (data) {
-    // Clear the SVG
-    // while (this.svg.firstChild) {
-    //   this.svg.removeChild(this.svg.firstChild)
-    // }
-
-    // data = [
-    //   { name: 'Christopher Columbus', birth: 1451, death: 1506 },
-    //   { name: 'Suleiman the Magnificent', birth: 1494, death: 1566 },
-    //   { name: 'Queen Elizabeth I', birth: 1533, death: 1603 },
-    //   { name: 'Toyotomi Hideyoshi', birth: 1537, death: 1598 },
-    //   { name: 'Peter the Great', birth: 1672, death: 1725 },
-    //   // { name: "George Washington", birth: 1732, death: 1799 },
-    //   // { name: "Thomas Jefferson", birth: 1743, death: 1826 },
-    //   // { name: "Abraham Lincoln xxxxxxxxxxxxxx", birth: 1809, death: 1865 },
-    //   // { name: "Winston Churchill", birth: 1874, death: 1965 },
-    //   // { name: "Benjamin Franklin", birth: 1706, death: 1790 },
-    //   // { name: "Kangxi Emperor", birth: 1654, death: 1722 },
-    //   // { name: "Qianlong Emperor", birth: 1711, death: 1799 },
-    //   // { name: "Louis XIV", birth: 1638, death: 1715 },
-    //   // { name: "Louis XVI", birth: 1754, death: 1793 },
-    //   // { name: "Queen Victoria", birth: 1819, death: 1901 },
-    //   // { name: "Otto von Bismarck", birth: 1815, death: 1898 },
-    //   // { name: "Napoleon", birth: 1769, death: 1821 },
-    //   // { name: "Franklin D. Roosevelt", birth: 1882, death: 1945 },
-    //   // { name: "Li Hongzhang", birth: 1823, death: 1901 },
-    //   // { name: "Adolf Hitler", birth: 1889, death: 1945 },
-    //   { name: 'Vladimir Lenin', birth: 1870, death: 1924 },
-    //   { name: 'Joseph Stalin', birth: 1878, death: 1953 },
-    //   { name: 'Sun Yat-sen', birth: 1866, death: 1925 },
-    //   { name: 'Mao Zedong', birth: 1893, death: 1976 },
-    //   { name: 'Deng Xiaoping', birth: 1904, death: 1997 },
-    //   { name: 'Emperor Meiji', birth: 1852, death: 1912 },
-    //   // { name: "Mahatma Gandhi", birth: 1869, death: 1948 },
-    //   // { name: "Queen Elizabeth II", birth: 1926, death: 2022 },
-    //   // { name: "Nelson Mandela", birth: 1918, death: 2013 },
-    //   { name: 'Martin Luther King Jr.', birth: 1929, death: 1968 },
-    //   { name: 'Mikhail Gorbachev', birth: 1931, death: 2022 },
-    //   { name: 'Lee Kuan Yew', birth: 1923, death: 2015 }
-    //   // add more figures here
-    // ]
-
+    if (this.svg) this.shadow.removeChild(this.svg)
     this.svg = Timeline(data)
-    // console.log(this.svg)
     this.shadow.appendChild(this.svg)
-    // Add your existing Timeline code here, using this.data and this.svg
-    // For demonstration, let's add a simple text element to the SVG.
-    // const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    // textElement.setAttribute('x', '10')
-    // textElement.setAttribute('y', '50')
-    // textElement.textContent = 'Your timeline will appear here.'
-    // this.svg.appendChild(textElement)
   }
 }
 

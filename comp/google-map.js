@@ -66,7 +66,7 @@ class MapComponent extends HTMLElement {
 
   setPlaceInfo (place) {
     let text = '<span class="empty">[ no location data ]</span>'
-    if (place.name || place.country) text = [place.name, place.country].join(', ')
+    if (place?.name || place?.country) text = [place.name, place.country].join(', ')
     const placeInfo = document.querySelector('#placeInfo')
     placeInfo.innerHTML = text
   }

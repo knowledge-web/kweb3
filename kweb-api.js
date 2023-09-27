@@ -67,6 +67,7 @@ window.addEventListener('selectNode', event => {
   selectNode(node.id)
 })
 window.addEventListener('hoverNode', event => {
+  // TODO add prevNode for "unHovered" event
   const { node, origin } = event.detail
   hoverNode(node?.id, origin)
 })
