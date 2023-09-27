@@ -13,7 +13,7 @@ async function initGraph (data) {
     .backgroundColor('rgba(0,0,0,0)')
     .graphData(data)
     .nodeLabel('name')
-    // .nodeAutoColorBy('name')
+    .nodeColor(node => node.color || 'rgba(255,255,255,0.8)')
     .enableNodeDrag(false)
     .onNodeClick(node => {
       const event = new CustomEvent('selectNode', { detail: { node } })

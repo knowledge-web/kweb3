@@ -23,7 +23,6 @@ class MapComponent extends HTMLElement {
       const placeInfo = document.createElement('div')
       placeInfo.id = 'placeInfo'
       placeInfo.innerHTML = 'No location'
-      console.log(placeInfo)
       this.appendChild(placeInfo)
 
       this.listenToNodeSelected()
@@ -69,7 +68,6 @@ class MapComponent extends HTMLElement {
     let text = '<span class="empty">[ no location data ]</span>'
     if (place.name || place.country) text = [place.name, place.country].join(', ')
     const placeInfo = document.querySelector('#placeInfo')
-    console.log(placeInfo)
     placeInfo.innerHTML = text
   }
 
