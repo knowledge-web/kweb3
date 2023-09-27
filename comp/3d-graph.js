@@ -1,4 +1,4 @@
-/* global ForceGraph3D */
+/* global ForceGraph3D SpriteText */
 import { CSS2DRenderer, CSS2DObject } from '//unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js'
 
 function toMap (arr) {
@@ -77,6 +77,26 @@ async function initGraph (data, options = {}) {
       return new CSS2DObject(nodeEl)
     })
     .nodeThreeObjectExtend(true)
+
+    .linkLabel('')
+    .linkThreeObjectExtend(true)
+    .linkThreeObject(link => {
+      // extend link with text sprite
+      const sprite = new SpriteText(`${link.name || ''}`)
+      // sprite.color = link.color || 'white'
+      sprite.color = 'rgba(127, 196, 255, 0.66)'
+      sprite.textHeight = 2
+      // sprite.rotation = 100
+      return sprite
+    })
+    .linkPositionUpdate((sprite, { start, end }) => {
+      const middlePos = Object.assign(...['x', 'y', 'z'].map(c => ({
+        [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
+      })))
+      // if (settings.dimensions === 2) middlePos.z = 0
+      // Position sprite
+      Object.assign(sprite.position, middlePos)
+    })
 
     .onNodeHover((node, prevNode) => {
       const event = new CustomEvent('hoverNode', { detail: { node, origin: 'graph' } })
