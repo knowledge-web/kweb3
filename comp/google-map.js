@@ -125,6 +125,7 @@ class MapComponent extends HTMLElement {
     })
   }
 
+  // TODO perhaps zoom out a bit if the coordinates are too far away?
   panToCoordinates (coordinates) {
     const latLng = new google.maps.LatLng(coordinates[0], coordinates[1])
     this.map.panTo(latLng)
