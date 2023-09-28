@@ -40,12 +40,17 @@
       background-color: rgba(255, 255, 255, 0.75);
     }
     h1.title .subtext {
+      background-color: #001;
       color: rgba(255, 255, 255, 0.75);
       font-size: 18px;
       line-height: 0.75em;
     }
     h1.title .subtext .link-name {
       color: rgba(127, 127, 255, 0.75);
+    }
+    h1.title .subtext .link-name.missing {
+      color: rgba(255, 127, 127, 0.75);
+      opacity: 0.75;
     }
 
     #3d-graph {
@@ -104,7 +109,7 @@
 <body>
   <h1 class="title">
     <span class="text">Loading...</span><br>
-    <span class="subtext"><span class="link-name">friend of</span> Derp Meister</span>
+    <span class="subtext"></span>
   </h1>
   
   <!-- TODO move to component -->
@@ -175,8 +180,7 @@
       let subtext = ''
       if (node.id) {
         const link = findLocalLink(selected.id, node.id)
-        const linkName = link.name || '--???-->'
-        subtext = `<span class="link-name">${linkName} </span>`
+        subtext = `<span class="link-name ${!link.name ? 'missing' : ''}">${link.name || '[ unknown link ]'} </span>`
         subtext += node.name
       }
       document.querySelector('h1.title .subtext').innerHTML = subtext
