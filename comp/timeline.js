@@ -270,13 +270,37 @@ class HistoricalTimeline extends HTMLElement {
         stroke-width: 1px;
         cursor: pointer;
       }
+      .toggle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 0.5em;
+        background-color: #111;
+        color: white;
+        cursor: pointer;
+      }
+      .toggle:hover {
+        background-color: #222;
+      }
+      svg.hidden {
+        display: none;
+      }
     `
     this.shadow.appendChild(style)
 
+    const toggleDiv = document.createElement('div')
+    toggleDiv.classList.add('toggle')
+    toggleDiv.innerHTML = 'toggle'
+    this.shadow.appendChild(toggleDiv)
+
     // Add an SVG container
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    // this.selectedSvg = null
     this.shadow.appendChild(this.svg)
+
+    toggleDiv.addEventListener('click', () => {
+      this.classList.toggle('hidden')
+      this.svg.classList.toggle('hidden')
+    })
   }
 
   connectedCallback () {
