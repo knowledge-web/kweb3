@@ -108,6 +108,7 @@ class MapComponent extends HTMLElement {
 
     window.addEventListener('nodeHovered', event => {
       let { node, origin } = event.detail
+      this.setPlaceInfo(node.id ? node?.birth?.place : this.selected.node?.birth?.place)
       if (origin === 'map') return
       let marker = this.markers.find(marker => marker.title === node.name)
       if (!node.id) {
@@ -117,7 +118,6 @@ class MapComponent extends HTMLElement {
       } else {
         if (marker && marker.secundary) marker.setIcon(hoverIcon)
       }
-      this.setPlaceInfo(node?.birth?.place)
       if (node?.birth?.place?.coordinates) {
         this.panToCoordinates(node.birth.place.coordinates) // Pan to pin
       }
