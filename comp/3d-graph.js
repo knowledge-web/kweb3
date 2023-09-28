@@ -120,8 +120,8 @@ async function initGraph (raw, options = {}) {
     highlightLinks.clear()
     if (node) {
       highlightNodes.add(node)
-      node.neighbors.forEach(neighbor => highlightNodes.add(neighbor))
-      node.links.forEach(link => highlightLinks.add(link))
+      if (node.neighbors) node.neighbors.forEach(neighbor => highlightNodes.add(neighbor))
+      if (node.links) node.links.forEach(link => highlightLinks.add(link))
     }
     hoverNode = node || null
     updateHighlight()
@@ -131,9 +131,9 @@ async function initGraph (raw, options = {}) {
     const { node, origin } = event.detail
     if (origin === 'graph') return
     if (!graph) return
-    // const nodes = graph.graphData().nodes // XXX Not needed
-    // const realNode = nodes.find(n => n.id === node.id)
-    honverEffect(node)
+    const nodes = graph.graphData().nodes // XXX Not needed
+    const realNode = nodes.find(n => n.id === node.id)
+    honverEffect(realNode)
   })
 }
 
@@ -147,7 +147,6 @@ function updateHighlight () {
 
 window.addEventListener('nodeSelected', event => {
   const { node, nodes, links } = event.detail
-  console.log('nodes:', nodes.map(n => n.name), node.name)
   initGraph({ nodes, links }, { selectedNode: node })
 })
 

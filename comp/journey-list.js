@@ -14,7 +14,6 @@ function addHoverEventsToLinks (elem) { // FIXME copied from bio.js
       const prevNode = { id }
       const node = {}
       const event = new CustomEvent('hoverNode', { detail: { node, prevNode, origin: 'journey' } })
-      console.log({ node, prevNode })
       window.dispatchEvent(event)
     })
   })
@@ -37,6 +36,7 @@ class JourneyList extends HTMLElement {
       const links = this.shadow.querySelectorAll('a[href^="#id="]')
       links.forEach(a => {
         a.classList.remove('hovered')
+        if (!node || !node.id) return
         const nodeId = a.getAttribute('href').split('=')[1]
         if (nodeId === node.id) a.classList.add('hovered')
       })
