@@ -16,6 +16,26 @@ marked.setOptions({
   // xhtml: false
 })
 
+function addHoverEventsToLinks (elem) {
+  const links = elem.querySelectorAll('a[href^="#id="]')
+  links.forEach(link => {
+    link.addEventListener('mouseover', function () {
+      const id = this.getAttribute('href').split('#id=')[1]
+      const node = { id }
+      const event = new CustomEvent('hoverNode', { detail: { node, origin: 'bio' } })
+      window.dispatchEvent(event)
+    })
+
+    link.addEventListener('mouseout', function () {
+      const id = this.getAttribute('href').split('#id=')[1]
+      const prevNode = { id }
+      const node = {}
+      const event = new CustomEvent('hoverNode', { detail: { node, prevNode, origin: 'bio' } })
+      window.dispatchEvent(event)
+    })
+  })
+}
+
 class BioComponent extends HTMLElement {
   constructor () {
     super()
@@ -51,23 +71,7 @@ class BioComponent extends HTMLElement {
     `
 
     // Add hover events to all links with #id=<some-id>
-    const links = bio.querySelectorAll('a[href^="#id="]')
-    links.forEach(link => {
-      link.addEventListener('mouseover', function () {
-        const id = this.getAttribute('href').split('#id=')[1]
-        const node = { id }
-        const event = new CustomEvent('hoverNode', { detail: { node, origin: 'bio' } })
-        window.dispatchEvent(event)
-      })
-
-      link.addEventListener('mouseout', function () {
-        const id = this.getAttribute('href').split('#id=')[1]
-        const prevNode = { id }
-        const node = {}
-        const event = new CustomEvent('hoverNode', { detail: { node, prevNode, origin: 'bio' } })
-        window.dispatchEvent(event)
-      })
-    })
+    addHoverEventsToLinks(bio)
   }
 
   async fetchContent (node) {

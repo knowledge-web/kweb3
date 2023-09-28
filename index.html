@@ -9,6 +9,7 @@
   <script type="importmap">{ "imports": { "three": "https://unpkg.com/three/build/three.module.js" }}</script>
 
   <script type="module" src="./comp/google-map.js"></script>
+  <script type="module" src="./comp/journey-list.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- TODO move to component -->
   <script type="module" src="./comp/bio.js"></script>
@@ -60,11 +61,13 @@
       z-index: 0;
     }
 
-    google-map { /* TODO move to google-map component */
-      display: block;
+    #left-box {
       position: absolute;
       top: 0;
       left: 0;
+    }
+    google-map { /* TODO move to google-map component */
+      display: block;
       width: 350px;
       height: 350px;
       border-radius: 0 0 30px 0;
@@ -81,11 +84,20 @@
       color: #a00;
     }
 
-    kweb-bio { /* TODO move to bio component */
+    journey-list {
+      display: block;
+      color: #eee;
+      background: rgba(255, 255, 255, 0.1);
+      margin-top: 8px;
+      padding: 4px 8px;
+      overflow: auto;
+    }
+
+    kweb-bio { /* TODO move to component */
       position: fixed;
       right: 0;
       top: 0;
-      width: 300px;
+      width: 400px;
       background: rgba(255, 255, 255, 0.75);
       padding: 0 8px;
       box-sizing: border-box;
@@ -132,7 +144,10 @@
   <script src="//unpkg.com/3d-force-graph"></script> <!-- TODO move to component -->
   <script src="./comp/3d-graph.js" type="module"></script>
 
-  <google-map id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
+  <div id="left-box">
+    <google-map id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
+    <journey-list></journey-list>
+  </div>
 
   <kweb-bio id="bio"></kweb-bio>
   <kweb-timeline></kweb-timeline>

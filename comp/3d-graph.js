@@ -9,7 +9,10 @@ function toMap (arr) {
 
 let graph = null
 let selectedNode = null
-async function initGraph (data, options = {}) {
+async function initGraph (raw, options = {}) {
+  const data = {}
+  data.nodes = JSON.parse(JSON.stringify(raw.nodes))
+  data.links = JSON.parse(JSON.stringify(raw.links))
   const elem = document.getElementById('3d-graph')
   selectedNode = options.selectedNode || null
   // NOTE Hover Effects ahead
@@ -144,6 +147,7 @@ function updateHighlight () {
 
 window.addEventListener('nodeSelected', event => {
   const { node, nodes, links } = event.detail
+  console.log('nodes:', nodes.map(n => n.name), node.name)
   initGraph({ nodes, links }, { selectedNode: node })
 })
 
