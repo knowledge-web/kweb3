@@ -66,6 +66,13 @@ class JourneyList extends HTMLElement {
     this.render()
   }
 
+  clearJourney () {
+    if (window.confirm('Are you sure you want to clear the journey?')) {
+      this.visitedNodes = []
+      this.render()
+    }
+  }
+
   render () {
     this.shadow.innerHTML = `
       <style>
@@ -96,6 +103,14 @@ class JourneyList extends HTMLElement {
         a.hovered {
           text-decoration: underline;
         }
+        button.clear {
+          opacity: 0.5;
+          margin-top: 10px;
+          margin-bottom: 6px;
+        }
+        button.clear:hover {
+          opacity: 1;
+        }
       </style>`
 
     const lastVisited = this.visitedNodes[this.visitedNodes.length - 1]
@@ -121,6 +136,14 @@ class JourneyList extends HTMLElement {
         a.classList.add('on-screen')
       }
     })
+
+    // Add 'Clear Journey' button
+    const clearButton = document.createElement('button')
+    clearButton.classList.add('clear')
+    clearButton.textContent = 'Clear'
+    clearButton.addEventListener('click', () => this.clearJourney())
+
+    this.shadow.appendChild(clearButton)
   }
 }
 
