@@ -14,8 +14,11 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- TODO move to component -->
   <script type="module" src="./comp/bio.js"></script>
 
-  <script src="https://d3js.org/d3.v7.min.js"></script> <!-- TODO move to component -->
-  <script type="module" src="./comp/timeline.js"></script>
+  <!-- TODO move to component -->
+  <!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
+  <!-- <script type="module" src="./comp/timeline.js"></script> -->
+
+  <script type="module" src="./comp/timeline-vis.js"></script>
 
   <style>
     body {
@@ -97,7 +100,7 @@
       position: fixed;
       right: 0;
       top: 0;
-      width: 400px;
+      width: 500px;
       background: rgba(255, 255, 255, 0.75);
       padding: 0 8px;
       box-sizing: border-box;
@@ -113,6 +116,15 @@
     }
     kweb-timeline.hidden {
       height: 25px;
+    }
+
+    timeline-vis {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 250px;
+      background-color: rgba(0,0,16, 0.85);
     }
   </style>
 
@@ -150,7 +162,9 @@
   </div>
 
   <kweb-bio id="bio"></kweb-bio>
-  <kweb-timeline></kweb-timeline>
+
+  <!-- <kweb-timeline></kweb-timeline> -->
+  <timeline-vis></timeline-vis>
 
   <script type="module">
     import { selectNode, hoverNode } from './kweb-api.js'
