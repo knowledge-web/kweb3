@@ -88,10 +88,13 @@ class JourneyList extends HTMLElement {
         a.hovered {
           text-decoration: underline;
         }
-      </style>
-      <h3>Visited Nodes (Journey)</h3>
+      </style>`
+    
+    const list = [...this.visitedNodes].reverse()
+    this.shadow.innerHTML += `
+      <h3>Knowledge Trail (Journey)</h3>
       <ul>
-      ${this.visitedNodes.map(node => `<li><a href="#id=${node.id}" class="${node === lastVisitedNode ? 'selected' : ''}">${node.name}</a></li>`).join('')}
+        ${list.map(node => `<li><a href="#id=${node.id}" class="${node === lastVisitedNode ? 'selected' : ''}">${node.name}</a></li>`).join('')}
       </ul>
     `
     addHoverEventsToLinks(this.shadow)
