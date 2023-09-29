@@ -134,7 +134,7 @@ class JourneyList extends HTMLElement {
         button:hover {
           opacity: 1;
         }
-        button.remove-last {
+        button.clear {
           margin-left: 10px;
         }
       </style>`
@@ -168,7 +168,7 @@ class JourneyList extends HTMLElement {
     clearButton.classList.add('clear')
     clearButton.textContent = 'Clear'
     clearButton.addEventListener('click', () => this.clearJourney())
-    this.shadow.appendChild(clearButton)
+    this.shadow.querySelector('h3').appendChild(clearButton)
 
     const removeLastButton = document.createElement('button')
     removeLastButton.classList.add('remove-last')

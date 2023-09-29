@@ -10,8 +10,9 @@ class TimelineVis extends HTMLElement {
   constructor () {
     super()
 
-    this.attachShadow({ mode: 'open' })
+    this.prevNode = {}
 
+    this.attachShadow({ mode: 'open' })
     // Styles
     const style = document.createElement('style')
     style.textContent = `
@@ -20,11 +21,24 @@ class TimelineVis extends HTMLElement {
         bottom: 0;
         width: 100%;
         height: 100%;
-        border: 1px solid #444;
-        background-color: #333;
-        color: #fff;
+        color: #eee;
+        border: 0;
       }
-      
+      #visualization .vis-time-axis .vis-text {
+        color: #eee;
+      }
+
+      .vis-item {
+        height: 20px !important; /* Set height */
+      }
+      .vis-item .vis-item-content{
+        font-size: 14px !important; /* Set font size */
+        padding: 0 4px !important; /* Remove padding */
+      }
+
+      .vis-item:hover {
+        background-color: steelblue !important;
+      }
     `
 
     // Container for Timeline
@@ -60,19 +74,74 @@ class TimelineVis extends HTMLElement {
       const options = {}
 
       this.timeline = new vis.Timeline(container, this.items, options)
-      window.addEventListener('nodeSelected', (event) => this.handleNodeSelected(event))
-    })
-  }
 
-  handleNodeSelected (event) {
-    console.log('TimelineVis received nodeSelected event', event.detail)
-    this.selected = event.detail
-    let data = this.selected.nodes.filter(node => node.birth?.date && node.death?.date)
-    data = data.map(node => {
-      return { id: node.id, content: node.name, start: fixDate(node.birth.date), end: fixDate(node.death.date) }
+      // Add click event listener
+      this.timeline.on('select', (properties) => {
+        const selectedIds = properties.items
+        if (selectedIds.length > 0) {
+          const id = selectedIds[0]
+          const clickedItem = this.items.get(id)
+          const node = { id: clickedItem.id, name: clickedItem.content }
+          const ev = new CustomEvent('selectNode', { detail: { node, origin: 'timeline' } })
+          window.dispatchEvent(ev)
+        }
+      })
+
+      // Add mouseover event listener
+      this.timeline.on('itemover', (properties) => {
+        const id = properties.item
+        if (id) {
+          const hoveredItem = this.items.get(id)
+          const node = { id: hoveredItem.id, name: hoveredItem.content }
+          this.prevNode = node
+          const ev = new CustomEvent('hoverNode', { detail: { node, origin: 'timeline' } })
+          window.dispatchEvent(ev)
+        }
+      })
+
+      // Add mouseout event listener
+      this.timeline.on('itemout', (properties) => {
+        const ev = new CustomEvent('hoverNode', { detail: { node: {}, prevNode: this.prevNode, origin: 'timeline' } })
+        window.dispatchEvent(ev)
+      })
+
+      // this.timeline.on('changed', () => {
+      //   const itemElements = this.shadowRoot.querySelectorAll('.vis-item');
+      //   itemElements.forEach((itemElement) => {
+      //     itemElement.style.height = '20px';
+      //     itemElement.style.top = (parseFloat(itemElement.style.top) - 10) + 'px';  // Adjust as needed
+      //   });
+      // });
+
+      window.addEventListener('nodeSelected', (event) => {
+        console.log('TimelineVis received nodeSelected event', event.detail)
+        this.selected = event.detail
+        let data = this.selected.nodes.filter(node => node.birth?.date && node.death?.date)
+        data = data.map(node => {
+          return { id: node.id, content: node.name, start: fixDate(node.birth.date), end: fixDate(node.death.date) }
+        })
+        console.log(data, 'data')
+        this.updateData(data)
+      })
+
+      window.addEventListener('nodeHovered', event => {
+        const { node, prevNode, origin } = event.detail
+        // if (origin === 'timeline') return
+        if (node === prevNode) return
+        this.prevNode = prevNode
+ 
+        // this.svg.querySelectorAll('.hovered').forEach(elem => { // remove all existing 'hovered' classes
+        //   elem.classList.remove('hovered')
+        // })
+
+        // this.hovered = node
+        // // find the node in the svg and highlight it
+        // if (!node || !node.name) return
+        // const elem = this.svg.querySelector(`[data-id="${node.id}"]`)
+        // if (!elem) return
+        // elem.classList.add('hovered')
+      })
     })
-    console.log(data, 'data')
-    this.updateData(data)
   }
 
   updateData (newItems) {
