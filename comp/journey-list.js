@@ -1,4 +1,4 @@
-/* global customElements, HTMLElement */
+/* global customElements, HTMLElement, localStorage */
 function addHoverEventsToLinks (elem) { // FIXME copied from bio.js
   const links = elem.querySelectorAll('a[href^="#id="]')
   links.forEach(link => {
@@ -24,10 +24,10 @@ class JourneyList extends HTMLElement {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
     this.visitedNodes = []
-    this.render()
   }
 
   connectedCallback () {
+    this.loadState()
     // Listen for the custom event on the document
     window.addEventListener('nodeSelected', this.nodeSelectedHandler.bind(this))
     window.addEventListener('hoverNode', event => {
@@ -73,7 +73,22 @@ class JourneyList extends HTMLElement {
     }
   }
 
+  saveState () {
+    const journeyState = JSON.stringify({ visitedNodes: this.visitedNodes, currentNodes: this.currentNodes })
+    localStorage.setItem('journeyState', journeyState)
+  }
+
+  loadState () {
+    const savedState = localStorage.getItem('journeyState')
+    if (savedState) {
+      const { visitedNodes, currentNodes } = JSON.parse(savedState)
+      this.visitedNodes = visitedNodes
+      this.currentNodes = currentNodes
+    }
+  }
+
   render () {
+    this.saveState()
     this.shadow.innerHTML = `
       <style>
         ul {
