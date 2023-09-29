@@ -24,7 +24,7 @@ export async function loadData () {
 export function selectNode (id) { // selects the node (fetches neighbors, etc. triggers event etc)
   const node = nodes.find(node => node.id === id)
   if (!node) return console.error(`Node with id ${id} not found`)
-  if (node === selectedNode) return console.log(`Node with id ${id} already selected`)
+  // if (node === selectedNode) return console.log(`Node with id ${id} already selected`)
   selectedNode = node
   const neighborLinks = links.filter(link => link.source === id || link.target === id)
   const neighborIds = new Set()
