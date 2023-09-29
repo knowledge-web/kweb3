@@ -87,6 +87,14 @@ class JourneyList extends HTMLElement {
     }
   }
 
+  removeLastNode () {
+    if (!this.visitedNodes.length) return
+    this.visitedNodes.pop()
+    this.saveState()
+    const id = this.visitedNodes[this.visitedNodes.length - 1].node.id
+    window.location.hash = `#id=${id}`
+  }
+
   render () {
     this.saveState()
     this.shadow.innerHTML = `
@@ -118,13 +126,16 @@ class JourneyList extends HTMLElement {
         a.hovered {
           text-decoration: underline;
         }
-        button.clear {
+        button {
           opacity: 0.5;
           margin-top: 10px;
           margin-bottom: 6px;
         }
-        button.clear:hover {
+        button:hover {
           opacity: 1;
+        }
+        button.remove-last {
+          margin-left: 10px;
         }
       </style>`
 
@@ -152,13 +163,18 @@ class JourneyList extends HTMLElement {
       }
     })
 
-    // Add 'Clear Journey' button
+    // Add buttons
     const clearButton = document.createElement('button')
     clearButton.classList.add('clear')
     clearButton.textContent = 'Clear'
     clearButton.addEventListener('click', () => this.clearJourney())
-
     this.shadow.appendChild(clearButton)
+
+    const removeLastButton = document.createElement('button')
+    removeLastButton.classList.add('remove-last')
+    removeLastButton.textContent = 'Remove last'
+    removeLastButton.addEventListener('click', () => this.removeLastNode())
+    this.shadow.appendChild(removeLastButton)
   }
 }
 
