@@ -114,13 +114,11 @@ class TimelineVis extends HTMLElement {
       // });
 
       window.addEventListener('nodeSelected', (event) => {
-        console.log('TimelineVis received nodeSelected event', event.detail)
         this.selected = event.detail
         let data = this.selected.nodes.filter(node => node.birth?.date && node.death?.date)
         data = data.map(node => {
           return { id: node.id, content: node.name, start: fixDate(node.birth.date), end: fixDate(node.death.date) }
         })
-        console.log(data, 'data')
         this.updateData(data)
       })
 
