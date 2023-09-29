@@ -28,7 +28,6 @@ class JourneyList extends HTMLElement {
   }
 
   connectedCallback () {
-    console.log('connectedCallback')
     // Listen for the custom event on the document
     window.addEventListener('nodeSelected', this.nodeSelectedHandler.bind(this))
     window.addEventListener('hoverNode', event => {
@@ -45,20 +44,29 @@ class JourneyList extends HTMLElement {
 
   disconnectedCallback () {
     window.removeEventListener('nodeSelected', this.nodeSelectedHandler.bind(this))
-    // TODO for the other one also
+    // FIXME remove the hover one also
   }
 
   nodeSelectedHandler (event) {
     const { node, nodes, links } = event.detail
-    if (!this.visitedNodes.some(visitedNode => visitedNode.id === node.id)) { // don't add the same node twice
-      this.visitedNodes.push(node)
+    let link = null
+
+    // If this is not the first node
+    if (this.visitedNodes.length > 0) {
+      const prev = this.visitedNodes[this.visitedNodes.length - 1].node
+      link = links.find(l => (l.source === prev.id && l.target === node.id) || (l.source === node.id && l.target === prev.id))
     }
+
+    // Add node and link to visitedNodes if not already visited
+    if (!this.visitedNodes.some(visitedNode => visitedNode.node.id === node.id)) {
+      this.visitedNodes.push({ node, link })
+    }
+
     this.currentNodes = nodes // Store the current nodes on screen
     this.render()
   }
 
   render () {
-    const lastVisitedNode = this.visitedNodes[this.visitedNodes.length - 1]
     this.shadow.innerHTML = `
       <style>
         ul {
@@ -89,13 +97,20 @@ class JourneyList extends HTMLElement {
           text-decoration: underline;
         }
       </style>`
-    
-    const list = [...this.visitedNodes].reverse()
+
+    const lastVisited = this.visitedNodes[this.visitedNodes.length - 1]
+    const list = this.visitedNodes // [...this.visitedNodes].reverse()
     this.shadow.innerHTML += `
       <h3>Knowledge Trail (Journey)</h3>
       <ul>
-        ${list.map(node => `<li><a href="#id=${node.id}" class="${node === lastVisitedNode ? 'selected' : ''}">${node.name}</a></li>`).join('')}
-      </ul>
+      ${list.map(({ node, link }, index) => {
+        link = link || {}
+        const classes = []
+        if (node === lastVisited.node) classes.push('selected')
+        if (this.currentNodes.some(currentNode => currentNode.id === node.id)) classes.push('on-screen')
+        return `<li>${link.name && index !== 0 ? `<span class="link-name">${link.name}</span>` : ''} <a href="#id=${node.id}" class="${classes.join(' ')}">${node.name}</a></li>`
+      }).join('')}
+    </ul>
     `
     addHoverEventsToLinks(this.shadow)
 
