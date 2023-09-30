@@ -46,18 +46,20 @@ class BioComponent extends HTMLElement {
   connectedCallback () {
     window.addEventListener('nodeSelected', event => {
       this.selected = event.detail
-      this.showBio(this.selected.node)
+      this.showBio(this.selected)
     })
 
     window.addEventListener('nodeHovered', event => {
       const { node, origin } = event.detail
       if (origin === 'bio') return
       this.hovered = node
-      this.showBio(this.hovered)
+      this.showBio({ node })
     })
   }
 
-  async showBio (node) {
+  async showBio ({ node, nodes, links }) {
+    nodes = nodes || this.selected.nodes || []
+    links = links || this.selected.links || []
     const bio = document.getElementById('bio')
     if (!node || !node.id) node = this.selected.node
 
@@ -65,9 +67,12 @@ class BioComponent extends HTMLElement {
     // render markdown
     const html = marked.parse(markdown)
 
+    const neighbors = nodes.filter(n => n.id !== node.id)
     bio.innerHTML = `
       <h2>${node.name}</h2>
       <p>${html}</p>
+      <h3>Links</h3>
+      <ul>${neighbors.map(n => `<li><a href="#id=${n.id}">${n.name}</a></li>`).join('\n')}</ul>
     `
 
     // Add hover events to all links with #id=<some-id>
