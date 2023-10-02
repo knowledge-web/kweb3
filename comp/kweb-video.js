@@ -10,7 +10,7 @@ function findPreviousValdIdFromSubtitleToNodeMap (subtitleToNodeMap, currentTime
       return [id, action]
     }
   }
-  return null
+  return []
 }
 
 class KWebVideo extends HTMLElement {
@@ -79,9 +79,7 @@ class KWebVideo extends HTMLElement {
           localStorage.setItem('videoTime', videoPlayer.currentTime)
           const currentTime = Math.floor(videoPlayer.currentTime)
 
-          const res = findPreviousValdIdFromSubtitleToNodeMap(subtitleToNodeMap, currentTime)
-          if (!res) return 
-          const [ id, action ] = res
+          const [ id, action ] = findPreviousValdIdFromSubtitleToNodeMap(subtitleToNodeMap, currentTime)
           if (id === lastId) return
           lastId = id
           currentNodeIdElement.textContent = `${id}`
@@ -94,7 +92,8 @@ class KWebVideo extends HTMLElement {
             node.id = null
           }
           if (action === 'hover') { // if hover, make sure the previous selection is still selected
-            const prevId = findPreviousValdIdFromSubtitleToNodeMap(subtitleToNodeMap, currentTime)
+            const [prevId, ] = findPreviousValdIdFromSubtitleToNodeMap(subtitleToNodeMap, currentTime, true)
+            console.log('prevId:', prevId)
             if (prevId) window.dispatchEvent(new CustomEvent('selectNode', { detail: { node: { id: prevId }, origin: 'video' } }))
           }
           const event = new CustomEvent(`${action}Node`, { detail: { node, origin: 'video' } })
