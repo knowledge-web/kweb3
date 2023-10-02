@@ -57,6 +57,7 @@ class KWebVideo extends HTMLElement {
           <source src="${videoUrl}" type="video/mp4">
         </video>
         <div id="currentNodeId"></div>
+        <a href="/">close video</a>
       </div>
     `
 
