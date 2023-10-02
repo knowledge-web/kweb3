@@ -36,7 +36,7 @@ class TimelineVis extends HTMLElement {
         padding: 0 4px !important; /* Remove padding */
       }
 
-      .vis-item:hover {
+      .vis-item:hover, .vis-item.hovered {
         background-color: steelblue !important;
       }
     `
@@ -124,20 +124,16 @@ class TimelineVis extends HTMLElement {
 
       window.addEventListener('nodeHovered', event => {
         const { node, prevNode, origin } = event.detail
-        // if (origin === 'timeline') return
         if (node === prevNode) return
         this.prevNode = prevNode
- 
-        // this.svg.querySelectorAll('.hovered').forEach(elem => { // remove all existing 'hovered' classes
-        //   elem.classList.remove('hovered')
-        // })
 
-        // this.hovered = node
-        // // find the node in the svg and highlight it
-        // if (!node || !node.name) return
-        // const elem = this.svg.querySelector(`[data-id="${node.id}"]`)
-        // if (!elem) return
-        // elem.classList.add('hovered')
+        if (origin === 'timeline') return
+        const items = this.shadowRoot.querySelectorAll('#visualization .vis-item')
+        items.forEach((itemElement) => { itemElement.classList.remove('hovered') })
+        for (const item of items) {
+          if (item.textContent !== node.name) continue
+          return item.classList.add('hovered') // done
+        }
       })
     })
   }
