@@ -10,6 +10,7 @@
 
   <script type="module" src="./comp/google-map.js"></script>
   <script type="module" src="./comp/journey-list.js"></script>
+  <script type="module" src="./comp/kweb-video.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- TODO move to component -->
   <script type="module" src="./comp/bio.js"></script>
@@ -19,7 +20,6 @@
   <!-- <script type="module" src="./comp/timeline.js"></script> -->
 
   <script type="module" src="./comp/timeline-vis.js"></script>
-
   <script type="module" src="./comp/kweb-search.js"></script>
 
   <style>
@@ -74,7 +74,7 @@
     google-map { /* TODO move to google-map component */
       display: block;
       width: 350px;
-      height: 350px;
+      height: 300px;
       border-radius: 0 0 30px 0;
     }
     google-map #placeInfo {
@@ -91,6 +91,10 @@
 
     journey-list {
       display: block;
+      position: absolute;
+      width: 300px;
+      top: 0;
+      right: 400px;
       color: #eee;
       background: rgba(255, 255, 255, 0.1);
       margin-top: 8px;
@@ -102,7 +106,7 @@
       position: fixed;
       right: 0;
       top: 0;
-      width: 350px;
+      width: 400px;
       height: 100%;
       overflow: auto;
       background: rgba(255, 255, 255, 0.75);
@@ -166,13 +170,15 @@
 
   <div id="left-box">
     <google-map id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
-    <journey-list></journey-list>
+    <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px; height: 600px;"></kweb-video>
+    <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.srt"></kweb-video> -->
+    <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.random.srt"></kweb-video> -->
   </div>
-
+  
+  <journey-list></journey-list>
   <kweb-bio id="bio"></kweb-bio>
 
-  <!-- <kweb-timeline></kweb-timeline> -->
-  <timeline-vis></timeline-vis>
+  <!-- <timeline-vis></timeline-vis> -->
 
   <script type="module">
     import { selectNode, hoverNode } from './kweb-api.js'

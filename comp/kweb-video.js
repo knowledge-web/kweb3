@@ -1,3 +1,18 @@
+function findPreviousValdIdFromSubtitleToNodeMap (subtitleToNodeMap, currentTime, onlySelect) {
+  const times = Object.keys(subtitleToNodeMap).map(Number).sort((a, b) => b - a)
+  for (let i = 0; i < times.length; i++) {
+    if (times[i] <= currentTime) {
+      const line = subtitleToNodeMap[times[i]].trim()
+      let [id, action] = line.split(':')
+      if (!id || !/^[0-9a-fA-F-]{36}$/.test(id)) continue
+      action = action || 'select'
+      if (onlySelect && action !== 'select') continue
+      return [id, action]
+    }
+  }
+  return null
+}
+
 class KWebVideo extends HTMLElement {
   constructor() {
     super()
@@ -48,6 +63,11 @@ class KWebVideo extends HTMLElement {
     const videoPlayer = this.shadowRoot.getElementById('videoPlayer')
     const currentNodeIdElement = this.shadowRoot.getElementById('currentNodeId')
 
+    const savedTime = localStorage.getItem('videoTime')
+    if (savedTime) {
+      videoPlayer.currentTime = parseFloat(savedTime)
+    }
+
     fetch(subtitleUrl)
       .then(response => response.text())
       .then(text => {
@@ -56,27 +76,29 @@ class KWebVideo extends HTMLElement {
 
         let lastId = null
         videoPlayer.addEventListener('timeupdate', function () {
+          localStorage.setItem('videoTime', videoPlayer.currentTime)
           const currentTime = Math.floor(videoPlayer.currentTime)
 
-          let closestTimestamp = sortedTimestamps.reduce((acc, cur) => {
-            return cur <= currentTime ? cur : acc
-          }, -1)
-
-          if (closestTimestamp !== -1) {
-            let nodeId = subtitleToNodeMap[closestTimestamp]
-            if (nodeId === lastId) return
-            lastId = nodeId
-            currentNodeIdElement.textContent = `${nodeId}`
-            
-            nodeId = nodeId.trim()
-            if (nodeId.length === 36) {
-              // trigger node focus event
-              console.log('trigger node focus event for:', nodeId)
-              const node = { id: nodeId }
-              const event = new CustomEvent('selectNode', { detail: { node, origin: 'map' } })
-              window.dispatchEvent(event)        
-            }
+          const res = findPreviousValdIdFromSubtitleToNodeMap(subtitleToNodeMap, currentTime)
+          if (!res) return 
+          const [ id, action ] = res
+          if (id === lastId) return
+          lastId = id
+          currentNodeIdElement.textContent = `${id}`
+          
+          // trigger node focus event
+          // console.log('TRIGGER:', { id, action })
+          const node = { id }
+          if (action === 'unhover') {
+            action = 'hover'
+            node.id = null
           }
+          if (action === 'hover') { // if hover, make sure the previous selection is still selected
+            const prevId = findPreviousValdIdFromSubtitleToNodeMap(subtitleToNodeMap, currentTime)
+            if (prevId) window.dispatchEvent(new CustomEvent('selectNode', { detail: { node: { id: prevId }, origin: 'video' } }))
+          }
+          const event = new CustomEvent(`${action}Node`, { detail: { node, origin: 'video' } })
+          window.dispatchEvent(event)
         })
       })
   }

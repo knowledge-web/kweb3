@@ -3,6 +3,7 @@ let links = {}
 let selectedNode = {}
 // let hoveredNode = {}
 
+// let trail = []
 export async function loadData () {
   try {
     const response = await fetch('./data/all.json')
@@ -24,7 +25,8 @@ export async function loadData () {
 export function selectNode (id) { // selects the node (fetches neighbors, etc. triggers event etc)
   const node = nodes.find(node => node.id === id)
   if (!node) return console.error(`Node with id ${id} not found`)
-  // if (node === selectedNode) return console.log(`Node with id ${id} already selected`)
+  if (node === selectedNode) return console.log(`Node with id ${id} already selected`)
+  // if (!trail.includes(node)) trail.push(node)
   selectedNode = node
   const neighborLinks = links.filter(link => link.source === id || link.target === id)
   const neighborIds = new Set()
@@ -32,6 +34,8 @@ export function selectNode (id) { // selects the node (fetches neighbors, etc. t
     neighborIds.add(link.source)
     neighborIds.add(link.target)
   })
+  // FIXME uncomment & fix make the journey-list work with this data!
+  // trail.forEach(node => neighborIds.add(node.id))
   neighborIds.delete(id)
 
   const neighbors = Array.from(neighborIds).map(id => nodes.find(node => node.id === id))
