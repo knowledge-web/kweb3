@@ -77,6 +77,7 @@ class BioComponent extends HTMLElement {
 
     // Add hover events to all links with #id=<some-id>
     addHoverEventsToLinks(bio)
+    bio.scrollTop = 0
   }
 
   async fetchContent (node) {
