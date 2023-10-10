@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+
+<html>
+<head><meta charset="utf-8"/>
+<title>3D Force Directed Graph</title>
+<script src="https://unpkg.com/3d-force-graph"></script>
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<style>body{margin:0;padding:0}</style>
+</head>
+<body>
+<div id="3d-graph"></div>
+
+<script>
+
+async function main () {
+  let { nodes, links } = await fetch('../network_graph_with_rules.json').then(res => res.json())
+
+  const radius_by_century = {
+    14: 75,
+    15: 150,
+    16: 300,
+    17: 600,
+    // 18: 1200,
+    // 19: 2400
+  }
+
+  nodes.forEach(node => {
+    node.radius = radius_by_century[node.century]
+  })
+
+  // filter nodes without radius
+  nodes = nodes.filter(node => node.radius)
+
+  console.log(nodes.length, 'nodes to include')
+  console.log(links.length, 'total links')
+
+  // add random links between the centries
+  // for (let i = 0; i < 4; i++) {
+  //   nodes.forEach(node => {
+  //     const other_nodes = nodes.filter(other_node => other_node.century !== node.century)
+  //     const other_node = other_nodes[Math.floor(Math.random() * other_nodes.length)]
+  //     links.push({
+  //       source: node.id,
+  //       target: other_node.id
+  //     })
+  //   })
+  // }
+
+  // filter missing links
+  links = links.filter(link => {
+    const source = nodes.find(node => node.id === link.source)
+    const target = nodes.find(node => node.id === link.target)
+    return source && target
+  })
+
+  console.log(links.length, 'links to include')
+
+
+  // count links spaning the centuries
+  const crossCentryLinks = links.filter(link => {
+    const source = nodes.find(node => node.id === link.source)
+    const target = nodes.find(node => node.id === link.target)
+    return source.century !== target.century
+  })
+  console.log(crossCentryLinks.length, 'links spaning the centuries')
+  
+  // links = links.filter(link => crossCentryLinks.indexOf(link) === -1) // exclude links spaning the centuries
+
+  const gData = { 
+    nodes, 
+    links 
+  };
+  const Graph = ForceGraph3D()(
+    document.getElementById('3d-graph')
+  )
+  .graphData(gData)
+  .nodeRelSize(8)
+  .nodeColor(d => {
+    if (d.radius === 150) {
+      return 'orange';
+    } else if (d.radius === 300) {
+      return 'brown';
+    } else if (d.radius === 600) {
+      return 'steelblue';
+    } else {
+      return 'green';
+    }
+  })
+  .linkWidth(2)
+  .linkColor('lightgray')
+  .d3AlphaDecay(0.01)
+  .d3VelocityDecay(0.1)
+  .d3Force('charge', null)
+  .d3Force('collide', d3.forceCollide(16))
+  .enableNodeDrag(false)
+  .onEngineTick(() => { 
+    Graph.graphData().nodes.forEach(node => { 
+      const r = node.radius; 
+      const theta = Math.atan2(node.y, node.x); 
+      const phi = Math.acos(node.z / Math.sqrt(node.x * node.x + node.y * node.y + node.z * node.z)); 
+      node.x = r * Math.sin(phi) * Math.cos(theta); 
+      node.y = r * Math.sin(phi) * Math.sin(theta); 
+      node.z = r * Math.cos(phi); 
+    }); 
+  });
+}
+
+main()
+</script>
+</body>
+</html>

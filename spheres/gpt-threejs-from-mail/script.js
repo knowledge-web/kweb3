@@ -1,6 +1,6 @@
 // Standard JS style
 const fetchGraphData = async () => {
-  const response = await fetch('./network_graph_with_rules.json')
+  const response = await fetch('../network_graph_with_rules.json')
   const data = await response.json()
   return data
 }

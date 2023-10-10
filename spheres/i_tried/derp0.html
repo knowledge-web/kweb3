@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>3D Force Directed Graph</title>
+  <script src="https://unpkg.com/3d-force-graph"></script>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0
+    }
+  </style>
+</head>
+
+<body>
+  <div id="3d-graph"></div>
+  <script>
+    const N = 300;
+    const nodes = [...Array(N).keys()].map(i => ({ id: i, type: i % 2 === 0 ? 'a' : 'b' }));
+    const links = [...Array(N).keys()].filter(id => id).flatMap(id => {
+      const target1 = Math.round(Math.random() * (id - 1));
+      const target2 = Math.round(Math.random() * (id - 1));
+      return nodes[target1].type === nodes[id].type ? [{ source: id, target: target1 }, { source: id, target: target2 }] : [];
+    });
+    const gData = { nodes, links };
+    const Graph = ForceGraph3D()(document.getElementById('3d-graph'))
+      .graphData(gData)
+      .nodeRelSize(8)
+      .nodeColor(d => d.type === 'a' ? 'brown' : 'steelblue')
+      .linkWidth(2)
+      .linkColor('lightgray')
+      .d3AlphaDecay(0.01)
+      .d3VelocityDecay(0.1)
+      .d3Force('charge', null)
+      .d3Force('collide', d3.forceCollide(16))
+      .enableNodeDrag(false)
+      .onEngineTick(() => {
+        Graph.graphData().nodes.forEach(node => {
+          const r = node.type === 'a' ? 300 : 600;
+          const theta = Math.atan2(node.y, node.x);
+          const phi = Math.acos(node.z / Math.sqrt(node.x * node.x + node.y * node.y + node.z * node.z));
+          node.x = r * Math.sin(phi) * Math.cos(theta);
+          node.y = r * Math.sin(phi) * Math.sin(theta);
+          node.z = r * Math.cos(phi);
+        });
+      });
+  </script>
+</body>
+
+</html>
