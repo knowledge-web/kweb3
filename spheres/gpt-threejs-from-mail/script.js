@@ -5,9 +5,40 @@ const fetchGraphData = async () => {
   return data
 }
 
+const highlightNodeAndEdges = (node, edges) => {
+  // Highlight the node
+  node.material.color.set(0xffff00) // Set to highlighted
+  node.material.opacity = 1.0
+
+  // Highlight the edges
+  edges.forEach(edge => {
+    if (edge.startNode === node || edge.endNode === node) {
+      edge.line.material.color.set(0xffff00) // Set to highlighted
+      edge.line.material.opacity = 0.75 // Set opacity to 1
+    }
+  })
+  setTimeout(() => {
+    removeHighlight(node, edges)
+  }, 1000)
+}
+
+const removeHighlight = (node, edges) => {
+  // Remove highlight from the node
+  node.material.color.set(0xffffff) // Set back to original color
+  node.material.opacity = 0.5
+
+  // Remove highlight from the edges
+  edges.forEach(edge => {
+    if (edge.startNode === node || edge.endNode === node) {
+      edge.line.material.color.set(0xffffff) // Set back to white
+      edge.line.material.opacity = 0.15 // Set opacity back to 0.15
+    }
+  })
+}
+
 const initGraph = async () => {
   const { nodes: allNodes, links } = await fetchGraphData()
-  const nodesData = allNodes.filter(node => node.century === 19)
+  const nodesData = allNodes.filter(node => node.century === 17)
 
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -15,9 +46,13 @@ const initGraph = async () => {
   renderer.setSize(window.innerWidth, window.innerHeight)
   document.getElementById('container').appendChild(renderer.domElement)
 
-  const light = new THREE.PointLight(0xffffff, 1, 100)
-  light.position.set(0, 0, 0)
-  scene.add(light)
+  const light1 = new THREE.PointLight(0xffffff, 1, 100)
+  light1.position.set(0, 0, 0)
+  const light2 = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(light1)
+  scene.add(light2)
+  scene.fog = new THREE.FogExp2(0x000000, 0.1);
+
 
   const gui = new dat.GUI()
   const controls = {
@@ -38,14 +73,15 @@ const initGraph = async () => {
   gui.add(controls, 'algorithm', ['Fruchterman-Reingold', 'Kamada-Kawai'])
   gui.add(controls, 'enableMapping')
 
-  const geometry = new THREE.SphereGeometry(0.1, 32, 32)
-  const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 })
+  const geometry = new THREE.SphereGeometry(0.03, 32, 32)
+  // const material = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 })
   const nodes = []
   const nodeMap = {}
   const edges = []
-
+  
   nodesData.forEach(nodeData => {
-    const sphere = new THREE.Mesh(geometry, material)
+    const individualMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+    const sphere = new THREE.Mesh(geometry, individualMaterial)
     sphere.position.set(Math.random() * 5, Math.random() * 5, Math.random() * 5)
     sphere.userData = nodeData
     scene.add(sphere)
@@ -59,7 +95,7 @@ const initGraph = async () => {
     if (startNode && endNode) {
       const points = [startNode.position.clone(), endNode.position.clone()]
       const lineGeometry = new THREE.BufferGeometry().setFromPoints(points)
-      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.33 })
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })
       const line = new THREE.Line(lineGeometry, lineMaterial)
       scene.add(line)
       edges.push({ line, startNode, endNode })
@@ -118,20 +154,34 @@ const initGraph = async () => {
         });
       }
     
-      // Update edge positions
-      edges.forEach(edge => {
-        edge.line.geometry.setFromPoints([edge.startNode.position.clone(), edge.endNode.position.clone()]);
-        edge.line.geometry.verticesNeedUpdate = true;
-      });
-    
       // Map nodes to a sphere
       if (controls.enableMapping) {
         nodes.forEach(node => {
           node.position.normalize().multiplyScalar(controls.sphereRadius);
         });
+        // Update edge positions
+        edges.forEach(edge => {
+          const start = edge.startNode.position.clone().normalize().multiplyScalar(controls.sphereRadius);
+          const end = edge.endNode.position.clone().normalize().multiplyScalar(controls.sphereRadius);
+          edge.line.geometry.setFromPoints([start, end]);
+          edge.line.geometry.verticesNeedUpdate = true;
+        });
+      } else {
+        edges.forEach(edge => {
+          edge.line.geometry.setFromPoints([edge.startNode.position.clone(), edge.endNode.position.clone()]);
+          edge.line.geometry.verticesNeedUpdate = true;
+        });
       }
     };
     
+    setInterval(() => {
+      // Pick a random node
+      const randomIndex = Math.floor(Math.random() * nodes.length)
+      const highlightedNode = nodes[randomIndex]
+      // Highlight the node and its edges
+      highlightNodeAndEdges(highlightedNode, edges)
+    }, 250)
+
     const animate = function () {
       requestAnimationFrame(animate);
       scene.rotation.x += controls.rotationSpeed;
