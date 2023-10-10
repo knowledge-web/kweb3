@@ -4,15 +4,91 @@
 <head><meta charset="utf-8"/>
 <title>3D Force Directed Graph</title>
 <script src="https://unpkg.com/3d-force-graph"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
 <script src="https://d3js.org/d3.v6.min.js"></script>
 <style>body{margin:0;padding:0}</style>
 </head>
 <body>
+<button id="reheatButton">Reheat Simulation</button> <button id="resetButton">Reset Settings</button>
+
 <div id="3d-graph"></div>
 
 <script>
 
+// Add this function to calculate collideForce based on century
+function calculateCollideForce(century, baseForce, decayFactor) {
+  // Assuming 18th century is the base century
+  const baseCentury = 18;
+  
+  // Calculate the factor by which to multiply the baseForce
+  const factor = Math.pow(decayFactor, baseCentury - century);
+  
+  return baseForce * factor;
+}
+
 async function main () {
+  // Create a GUI object
+  const gui = new dat.GUI();
+
+  document.getElementById('reheatButton').addEventListener('click', () => {
+    Graph.d3ReheatSimulation()
+  });
+
+  // Create an object to hold the force parameters
+  const forceParams = {
+    alphaDecay: 0.01,
+    velocityDecay: 0.1,
+    collideForce: 16,
+    decayFactor: 0.5  // New parameter for decay factor
+  };
+
+  // Function to save settings to localStorage
+  function saveSettings() {
+    localStorage.setItem('forceParams', JSON.stringify(forceParams));
+  }
+
+  // Function to load settings from localStorage
+  function loadSettings() {
+    const savedParams = JSON.parse(localStorage.getItem('forceParams'));
+    if (savedParams) {
+      Object.assign(forceParams, savedParams);
+    }
+  }
+
+  // Function to reset settings
+  function resetSettings() {
+    localStorage.removeItem('forceParams');
+    location.reload();
+  }
+
+  // Load settings from localStorage
+  loadSettings();
+
+  document.getElementById('resetButton').addEventListener('click', resetSettings);
+
+  // Add sliders to the GUI
+  gui.add(forceParams, 'alphaDecay', 0, 1).step(0.01).name('Alpha Decay').onChange(val => {
+    Graph.d3AlphaDecay(val);
+    saveSettings();
+  });
+
+  gui.add(forceParams, 'velocityDecay', 0, 1).step(0.01).name('Velocity Decay').onChange(val => {
+    Graph.d3VelocityDecay(val);
+    saveSettings();
+  });
+
+  gui.add(forceParams, 'collideForce', 0, 150).step(1).name('Collide Force').onChange(val => {
+    Graph.d3Force('collide', d3.forceCollide(node => calculateCollideForce(node.century, val, forceParams.decayFactor)));
+    saveSettings();
+  });
+
+  // Add a new slider for the decay factor
+  gui.add(forceParams, 'decayFactor', 0, 1).step(0.01).name('Decay Factor').onChange(val => {
+    // Update the collide force with the new decay factor
+    Graph.d3Force('collide', d3.forceCollide(node => calculateCollideForce(node.century, forceParams.collideForce, val)));
+    saveSettings();
+  });
+
   let { nodes, links } = await fetch('../network_graph_with_rules.json').then(res => res.json())
 
   const radius_by_century = {
@@ -82,16 +158,19 @@ async function main () {
       return 'brown';
     } else if (d.radius === 600) {
       return 'steelblue';
+    } else if (d.radius === 1200) {
+      return 'pink';
     } else {
       return 'green';
     }
   })
   .linkWidth(2)
   .linkColor('lightgray')
-  .d3AlphaDecay(0.01)
-  .d3VelocityDecay(0.1)
+  .d3AlphaDecay(forceParams.alphaDecay)
+  .d3VelocityDecay(forceParams.velocityDecay)
+  // .d3Force('collide', d3.forceCollide(forceParams.collideForce))
+  .d3Force('collide', d3.forceCollide(node => calculateCollideForce(node.century, forceParams.collideForce, forceParams.decayFactor)))
   .d3Force('charge', null)
-  .d3Force('collide', d3.forceCollide(16))
   .enableNodeDrag(false)
   .onEngineTick(() => { 
     Graph.graphData().nodes.forEach(node => { 
