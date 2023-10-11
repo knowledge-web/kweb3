@@ -36,6 +36,10 @@ function addHoverEventsToLinks (elem) {
   })
 }
 
+function normalizeString (str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+}
+
 class BioComponent extends HTMLElement {
   constructor () {
     super()
@@ -81,6 +85,7 @@ class BioComponent extends HTMLElement {
     const onlyInText = Object.keys(textLinks).filter(id => !nodes.map(n => n.id).includes(id))
 
     const neighbors = nodes.filter(n => n.id !== node.id)
+    const onlyMentioned = neighbors.filter(({ id, name }) => normalizeString(html).includes(normalizeString(name)) && !html.includes(`href="#id=${id}"`)).map(n => n.id)
     bio.innerHTML = `
       <style>
         a.dead-link { color: #f00; }
@@ -92,11 +97,16 @@ class BioComponent extends HTMLElement {
         }
         .external-link:visited { color: #800080; }
         li.in-text a { font-weight: bold; }
+        li.only-mentioned::after { content: ' (unlinked mention)'; opacity: 0.5; }
       </style>
       <h2>${node.name}</h2>
       <p>${html}</p>
       <h3>Links (${neighbors.length})</h3>
-      <ul>${neighbors.map(n => `<li class="${Object.keys(textLinks).includes(n.id) ? 'in-text' : ''}"><a href="#id=${n.id}">${n.name}</a></li>`).join('\n')}</ul>
+      <ul>
+        ${neighbors.map(n => `<li class="${Object.keys(textLinks).includes(n.id) ? 'in-text' : ''}${onlyMentioned.includes(n.id) ? 'only-mentioned' : ''}">
+          <a href="#id=${n.id}">${n.name}</a>
+        </li>`).join('\n')}
+      </ul>
       <h4>Only in text (${onlyInText.length})</h4>
       <ul>${onlyInText.map(id => `<li><a href="#id=${id}">${textLinks[id]}</a></li>`).join('\n')}</ul>
       `
