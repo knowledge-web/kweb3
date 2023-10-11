@@ -67,13 +67,28 @@ class BioComponent extends HTMLElement {
     // render markdown
     const html = marked.parse(markdown)
 
+    // Extract 'href="#id=' + link text from html
+    const textLinks = [...html.matchAll(/href="#id=([^"]+)">([^<]+)<\/a>/g)].reduce((acc, [, id, text]) => {
+      acc[id] = text
+      return acc
+    }, {})
+    const onlyInText = Object.keys(textLinks).filter(id => !nodes.map(n => n.id).includes(id))
+
     const neighbors = nodes.filter(n => n.id !== node.id)
-    bio.innerHTML = `
+    bio.innerHTML = `<style>li.in-text { font-weight: bold; }</style>
       <h2>${node.name}</h2>
+      <h3>Summary</h3>
+      <p>${Object.entries(textLinks).map(([id, text]) => `${text}`).join('\n')}</p>
       <p>${html}</p>
-      <h3>Links</h3>
-      <ul>${neighbors.map(n => `<li><a href="#id=${n.id}">${n.name}</a></li>`).join('\n')}</ul>
-    `
+      <h3>Links (${neighbors.length})</h3>
+      <ul>${neighbors.map(n => `<li class="${Object.keys(textLinks).includes(n.id) ? 'in-text' : ''}"><a href="#id=${n.id}">${n.name}</a></li>`).join('\n')}</ul>
+      <h4>Only in text (${onlyInText.length})</h4>
+      <ul>${onlyInText.map(id => `<li><a href="#id=${id}">${textLinks[id]}</a></li>`).join('\n')}</ul>
+      `
+      // TODO ~:
+      // <h3>Linking here</h4>
+      // TODO
+      // <h4>Likely mentions</h4>
 
     // Add hover events to all links with #id=<some-id>
     addHoverEventsToLinks(bio)
