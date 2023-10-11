@@ -41,9 +41,15 @@ class BioComponent extends HTMLElement {
     super()
     this.selected = {} // { node, nodes, links }
     this.hovered = {} // node
+    this.nodeIds = []
   }
 
   connectedCallback () {
+    window.addEventListener('dataLoaded', event => {
+      const { nodes } = event.detail
+      this.nodeIds = nodes.map(n => n.id)
+    })
+
     window.addEventListener('nodeSelected', event => {
       this.selected = event.detail
       this.showBio(this.selected)
@@ -75,10 +81,19 @@ class BioComponent extends HTMLElement {
     const onlyInText = Object.keys(textLinks).filter(id => !nodes.map(n => n.id).includes(id))
 
     const neighbors = nodes.filter(n => n.id !== node.id)
-    bio.innerHTML = `<style>li.in-text { font-weight: bold; }</style>
+    bio.innerHTML = `
+      <style>
+        a.dead-link { color: #f00; }
+        a.dead-link::after { content: ' 💀'; }
+        a.external-link { color: #008000; }
+        a.external-link::after {
+          content: ' 🔗';
+          font-size: smaller;
+        }
+        .external-link:visited { color: #800080; }
+        li.in-text a { font-weight: bold; }
+      </style>
       <h2>${node.name}</h2>
-      <h3>Summary</h3>
-      <p>${Object.entries(textLinks).map(([id, text]) => `${text}`).join('\n')}</p>
       <p>${html}</p>
       <h3>Links (${neighbors.length})</h3>
       <ul>${neighbors.map(n => `<li class="${Object.keys(textLinks).includes(n.id) ? 'in-text' : ''}"><a href="#id=${n.id}">${n.name}</a></li>`).join('\n')}</ul>
@@ -92,6 +107,18 @@ class BioComponent extends HTMLElement {
 
     // Add hover events to all links with #id=<some-id>
     addHoverEventsToLinks(bio)
+
+    // highlight dead links
+    bio.querySelectorAll('a[href^="#id="]').forEach(link => {
+      const id = link.getAttribute('href').split('#id=')[1]
+      if (!this.nodeIds.includes(id)) link.classList.add('dead-link')
+    })
+    // style external links
+    bio.querySelectorAll('a[href^="http"]').forEach(link => {
+      link.setAttribute('target', '_blank')
+      link.classList.add('external-link')
+    })
+
     bio.scrollTop = 0
   }
 
