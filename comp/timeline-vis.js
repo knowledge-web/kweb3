@@ -24,6 +24,9 @@ class TimelineVis extends HTMLElement {
         color: #eee;
         border: 0;
       }
+      #visualization.empty .vis-timeline {
+        display: none;
+      }
       #visualization .vis-time-axis .vis-text {
         color: #eee;
       }
@@ -44,6 +47,7 @@ class TimelineVis extends HTMLElement {
     // Container for Timeline
     const container = document.createElement('div')
     container.id = 'visualization'
+    container.classList.add('empty')
 
     // Add elements to shadow DOM
     this.shadowRoot.appendChild(style)
@@ -136,6 +140,8 @@ class TimelineVis extends HTMLElement {
   }
 
   updateData (newItems) {
+    // Hide timeline if no items
+    this.shadowRoot.querySelector('#visualization').classList.toggle('empty', newItems.length === 0)
     this.items.clear()
     this.items.add(newItems)
     this.timeline.fit()
