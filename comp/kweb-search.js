@@ -11,21 +11,17 @@ class KWebSearch extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>
         .search-container {
-          z-index: 200;
-          position: absolute;
-          left: 350px;
-
           display: flex;
           align-items: center;
-          background-color: #333;
-          padding: 16px;
+          padding: 4px;
+          margin-left: 4px;
         }
         .autocomplete {
           position: relative;
         }
         input {
           width: 300px;
-          padding: 12px;
+          padding: 8px 4px;
           font-size: 18px;
           background-color: #555;
           color: #fff;
@@ -49,9 +45,9 @@ class KWebSearch extends HTMLElement {
           background-color: #555;
         }
         .random-button {
-          margin-left: 20px;
-          padding: 12px;
-          font-size: 24px;
+          margin-left: 10px;
+          padding: 10px;
+          font-size: 20px;
           background-color: #555;
           color: #fff;
           border: none;

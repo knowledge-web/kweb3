@@ -36,9 +36,15 @@
       background-size: cover;
     }
 
-    h1.title {
+    #top-box {
+      z-index: 200;
       position: absolute;
+      left: 350px;
+    }
+
+    h1.title {
       width: 100%;
+      margin: 0;
       text-align: center;
       z-index: 100;
     }
@@ -93,11 +99,11 @@
     }
 
     journey-list {
-      display: block;
-      position: absolute;
+      /* display: block;
+      position: absolute; */
       width: 300px;
       top: 0;
-      right: 400px;
+      /* right: 400px; */
       color: #eee;
       background: rgba(255, 255, 255, 0.1);
       margin-top: 8px;
@@ -146,12 +152,13 @@
 </head>
 <!-- <body data-auto-load="false"> -- to not auto fetch data -->
 <body>
-  <h1 class="title">
-    <span class="text">Loading...</span><br>
-    <span class="subtext"></span>
-  </h1>
-  
-  <kweb-search style="display: block;"></kweb-search>
+  <div id="top-box">
+    <kweb-search style="display: block;"></kweb-search>
+    <h1 class="title">
+      <span class="text">Loading...</span><br>
+      <span class="subtext"></span>
+    </h1>
+  </div>
 
   <!-- TODO move to component -->
   <style>
@@ -178,9 +185,9 @@
     <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px; height: 600px;"></kweb-video>
     <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.srt"></kweb-video> -->
     <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.random.srt"></kweb-video> -->
+    <journey-list></journey-list>
   </div>
   
-  <journey-list></journey-list>
   <kweb-bio id="bio"></kweb-bio>
 
   <timeline-vis></timeline-vis>
