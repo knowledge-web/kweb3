@@ -127,6 +127,9 @@ class JourneyList extends HTMLElement {
           text-decoration: underline;
         }
         button {
+          position: relative;
+          z-index: 100;
+          cursor: pointer;
           opacity: 0.5;
           margin-top: 10px;
           margin-bottom: 6px;
