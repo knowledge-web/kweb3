@@ -20,6 +20,7 @@ class MapComponent extends HTMLElement {
     this.loadGoogleMapsScript().then(() => {
       this.initializeMap()
 
+      this.classList.add('no-location')
       const placeInfo = document.createElement('div')
       placeInfo.id = 'placeInfo'
       placeInfo.innerHTML = 'No location'
@@ -50,7 +51,7 @@ class MapComponent extends HTMLElement {
 
   async initializeMap () {
     const mapOptions = {
-      zoom: 5,
+      zoom: 1,
       center: { lat: 0, lng: 0 }, // Initialize center at (0, 0)
       disableDefaultUI: true // Disable default UI controls
     }
@@ -75,9 +76,11 @@ class MapComponent extends HTMLElement {
     this.clearMap() // Clear previous pins if any
 
     // Show selected node
+    let noLocation = true
     if (node?.birth?.place?.coordinates) {
       this.showPlaceOnMap(node, node.birth.place.coordinates, false)
       this.panToCoordinates(node.birth.place.coordinates) // Pan to main pin
+      noLocation = false
     }
     this.setPlaceInfo(node?.birth?.place)
 
@@ -85,8 +88,11 @@ class MapComponent extends HTMLElement {
     nodes.forEach(n => {
       if (n !== node && n?.birth?.place?.coordinates) {
         this.showPlaceOnMap(n, n.birth.place.coordinates, true)
+        noLocation = false
       }
     })
+    this.classList.toggle('no-location', noLocation)
+    this.map.setZoom(noLocation ? 1 : 5) // 5 = default
   }
 
   listentoNodeHovered () {
@@ -129,6 +135,7 @@ class MapComponent extends HTMLElement {
   panToCoordinates (coordinates) {
     const latLng = new google.maps.LatLng(coordinates[0], coordinates[1])
     this.map.panTo(latLng)
+    this.map.setZoom(5) // NOTE the end of showPins() does similar, duplicate calls?
   }
 
   showPlaceOnMap (node, [lat, lng], secundary = false) {
