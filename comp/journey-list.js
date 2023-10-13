@@ -133,6 +133,10 @@ class JourneyList extends HTMLElement {
           opacity: 0.5;
           margin-top: 10px;
           margin-bottom: 6px;
+
+          border: none;
+          background: none;
+          color: white;
         }
         button:hover {
           opacity: 1;
