@@ -36,12 +36,12 @@ async function initGraph (raw, options = {}) {
 
   if (graph) return graph.graphData(data)
 
-  // const width = elem.clientWidth
+  const width = elem.clientWidth * 0.8
   // const height = elem.clientHeight
   graph = ForceGraph3D({
     extraRenderers: [new CSS2DRenderer()]
   })(elem)
-    // .width(width)
+    .width(width)
     // .height(height)
     .graphData(data)
     .backgroundColor('rgba(0,0,0,0)')

@@ -175,6 +175,7 @@ class JourneyList extends HTMLElement {
 
     const removeLastButton = document.createElement('button')
     removeLastButton.classList.add('remove-last')
+    if (list.length === 0) removeLastButton.style.display = 'none'
     removeLastButton.textContent = 'Remove last'
     removeLastButton.addEventListener('click', () => this.removeLastNode())
     this.shadow.appendChild(removeLastButton)

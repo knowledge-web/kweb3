@@ -88,6 +88,20 @@ class BioComponent extends HTMLElement {
     const onlyMentioned = neighbors.filter(({ id, name }) => normalizeString(html).includes(normalizeString(name)) && !html.includes(`href="#id=${id}"`)).map(n => n.id)
     bio.innerHTML = `
       <style>
+        * {
+          font-family: 'Source Serif Pro', sans-serif;
+        }
+        h1, h3, h3 {
+          font-weight: 700;
+        }
+        h2 {
+          font-size: 36px;
+        }
+        p {
+          font-size: 18px;
+          line-height: 1.5em;
+          color: rgba(0, 0, 0, 0.9);
+        }
         a.dead-link { color: #f00; }
         a.dead-link::after { content: ' 💀'; }
         a.external-link { color: #008000; }
@@ -98,6 +112,7 @@ class BioComponent extends HTMLElement {
         .external-link:visited { color: #800080; }
         li.in-text a { font-weight: bold; }
         li.only-mentioned::after { content: ' (unlinked mention)'; opacity: 0.5; }
+        img { max-width: 100%; }
       </style>
       <h2>${node.name}</h2>
       <p>${html}</p>
