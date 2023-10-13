@@ -26,14 +26,14 @@ class KWebSearch extends HTMLElement {
           background-color: #555;
           color: #fff;
           border: none;
-          border-radius: 8px;
+          border-radius: 8px 0 0 8px;
         }
         .autocomplete-items {
           position: absolute;
           z-index: 200;
           width: 300px;
           background-color: #444;
-          border-radius: 8px;
+          border-radius: 0 0 8px 8px;
         }
         .autocomplete-item {
           padding: 16px;
@@ -45,13 +45,12 @@ class KWebSearch extends HTMLElement {
           background-color: #555;
         }
         .random-button {
-          margin-left: 10px;
-          padding: 10px;
-          font-size: 20px;
+          padding: 9px;
+          font-size: 16px;
           background-color: #555;
           color: #fff;
           border: none;
-          border-radius: 50%;
+          border-radius: 0 8px 8px 0;
           cursor: pointer;
         }
       </style>
@@ -74,6 +73,12 @@ class KWebSearch extends HTMLElement {
 
     searchBox.addEventListener('input', (e) => this.showSuggestions(e.target.value))
     randomButton.addEventListener('click', () => this.randomSelection())
+    searchBox.addEventListener('blur', (e) => {
+      setTimeout(() => {
+        const itemsDiv = this.shadowRoot.querySelector('.autocomplete-items')
+        itemsDiv.innerHTML = ''
+      }, 100)
+    })
   }
 
   showSuggestions (value) {
