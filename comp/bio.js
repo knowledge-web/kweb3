@@ -90,15 +90,15 @@ class BioComponent extends HTMLElement {
       <style>
         * {
           font-family: 'Source Serif Pro', sans-serif;
+          font-size: 18px;
         }
         h1, h3, h3 {
           font-weight: 700;
         }
-        h2 {
-          font-size: 36px;
-        }
+        h2 { font-size: 36px; }
+        h3 { font-size: 20px; }
+        h4 { font-size: 16px; }
         p {
-          font-size: 18px;
           line-height: 1.5em;
           color: rgba(0, 0, 0, 0.9);
         }
@@ -122,7 +122,7 @@ class BioComponent extends HTMLElement {
           <a href="#id=${n.id}">${n.name}</a>
         </li>`).join('\n')}
       </ul>
-      <h4>Only in text (${onlyInText.length})</h4>
+      <h4 style="${onlyInText.length ? '' : 'display: none;'}">Only in text (${onlyInText.length})</h4>
       <ul>${onlyInText.map(id => `<li><a href="#id=${id}">${textLinks[id]}</a></li>`).join('\n')}</ul>
       `
       // TODO ~:
