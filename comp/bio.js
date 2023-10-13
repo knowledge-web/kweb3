@@ -86,14 +86,17 @@ class BioComponent extends HTMLElement {
 
     const neighbors = nodes.filter(n => n.id !== node.id)
     const onlyMentioned = neighbors.filter(({ id, name }) => normalizeString(html).includes(normalizeString(name)) && !html.includes(`href="#id=${id}"`)).map(n => n.id)
+    
+    // FIXME css --> Shadow DOM only
     bio.innerHTML = `
       <style>
         * {
           font-family: 'Source Serif Pro', sans-serif;
           font-size: 18px;
         }
-        h1, h3, h3 {
+        h1, h2, h3 {
           font-weight: 700;
+          letter-spacing: 0.025em;
         }
         h2 { font-size: 36px; }
         h3 { font-size: 20px; }

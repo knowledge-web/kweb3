@@ -79,12 +79,14 @@
       position: absolute;
       top: 0;
       left: 0;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.05);
     }
     .main-map { /* TODO move to google-map component */
       display: block;
       width: 350px;
       height: 300px;
-      border-radius: 0 0 30px 0;
+      /* border-radius: 0 0 30px 0; */
     }
     .main-map.no-location {
       opacity: 0.5;
@@ -111,8 +113,7 @@
       /* right: 400px; */
       color: #eee;
       /* background: rgba(255, 255, 255, 0.1); */
-      margin-top: 8px;
-      padding: 4px 8px;
+      margin: 0;
       overflow: auto;
     }
 
@@ -189,7 +190,7 @@
   <div id="left-box">
     <google-map class="main-map" id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
     <!-- <cesium-map class="main-map" api-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxNTRmNjQ1MC0xOTIxLTRkM2QtOTNmNC1lZDkxODYxNWE4ODMiLCJpZCI6MTM3NTg3LCJpYXQiOjE2ODM3Mzc5NjB9.KwjcnhYYtZbFEfG-H0TbssroK5gHFKTp8tdhe3EE6JA"></cesium-map> -->
-    <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px; height: 600px;"></kweb-video>
+    <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px;"></kweb-video>
     <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.srt"></kweb-video> -->
     <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.random.srt"></kweb-video> -->
     <journey-list></journey-list>

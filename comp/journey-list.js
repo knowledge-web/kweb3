@@ -99,6 +99,7 @@ class JourneyList extends HTMLElement {
     this.saveState()
     this.shadow.innerHTML = `
       <style>
+        h3 { margin: 0; }
         ul {
           list-style-type: disc;
           margin: 0;
