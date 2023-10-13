@@ -77,7 +77,7 @@ class KWebSearch extends HTMLElement {
       setTimeout(() => {
         const itemsDiv = this.shadowRoot.querySelector('.autocomplete-items')
         itemsDiv.innerHTML = ''
-      }, 100)
+      }, 500)
     })
   }
 

@@ -75,7 +75,7 @@ class BioComponent extends HTMLElement {
 
     const markdown = await this.fetchContent(node)
     // render markdown
-    const html = marked.parse(markdown)
+    let html = marked.parse(markdown)
 
     // Extract 'href="#id=' + link text from html
     const textLinks = [...html.matchAll(/href="#id=([^"]+)">([^<]+)<\/a>/g)].reduce((acc, [, id, text]) => {
@@ -87,6 +87,9 @@ class BioComponent extends HTMLElement {
     const neighbors = nodes.filter(n => n.id !== node.id)
     const onlyMentioned = neighbors.filter(({ id, name }) => normalizeString(html).includes(normalizeString(name)) && !html.includes(`href="#id=${id}"`)).map(n => n.id)
     
+    // example .data/md-images/3afdc8c4-0738-4fac-aa63-651d5d2d2097.webp#$width=70p$
+    html = html.replaceAll('.data/md-images/', `/data-media/${node.id}/.data/md-images/`)
+
     // FIXME css --> Shadow DOM only
     bio.innerHTML = `
       <style>
@@ -118,7 +121,7 @@ class BioComponent extends HTMLElement {
         img { max-width: 100%; }
       </style>
       <h2>${node.name}</h2>
-      <p>${html}</p>
+      ${html}
       <h3>Links (${neighbors.length})</h3>
       <ul>
         ${neighbors.map(n => `<li class="${Object.keys(textLinks).includes(n.id) ? 'in-text' : ''}${onlyMentioned.includes(n.id) ? 'only-mentioned' : ''}">
