@@ -5,27 +5,52 @@ class CesiumMap extends HTMLElement {
     super()
     this.viewer = null
     this.billboards = []
+    this.billboardCollection = null // Define it here
     this.selected = {} // { node, nodes }
     this.hovered = {}
   }
 
   connectedCallback () {
-    this.initializeMap()
+    this.loadCesiumScript().then(() => {
+      this.initializeMap()
 
-    this.classList.add('no-location')
-    const placeInfo = document.createElement('div')
-    placeInfo.id = 'placeInfo'
-    placeInfo.innerHTML = 'No location'
-    this.appendChild(placeInfo)
+      this.classList.add('no-location')
+      const placeInfo = document.createElement('div')
+      placeInfo.id = 'placeInfo'
+      placeInfo.innerHTML = 'No location'
+      this.appendChild(placeInfo)
 
-    this.listenToNodeSelected()
-    this.listentoNodeHovered()
+      this.listenToNodeSelected()
+      this.listentoNodeHovered()
+    }).catch(err => {
+      console.error('Failed to load Cesium:', err)
+    })
+  }
+
+  loadCesiumScript () {
+    return new Promise((resolve, reject) => {
+      if (window.Cesium) {
+        resolve()
+      } else {
+        const script = document.createElement('script')
+        script.src = 'https://cesium.com/downloads/cesiumjs/releases/1.84/Build/Cesium/Cesium.js'
+        script.async = true
+        script.defer = true
+        document.head.appendChild(script)
+        script.onload = resolve
+        script.onerror = reject
+      }
+    })
   }
 
   initializeMap () {
     this.apiKey = this.getAttribute('api-key') || 'default_api_key'
     Cesium.Ion.defaultAccessToken = this.apiKey
-  
+    
+    if (this.apiKey !== 'default_api_key') {
+      Cesium.Ion.defaultAccessToken = this.apiKey
+    }
+
     this.viewer = new Cesium.Viewer(this, {
       animation: false,
       baseLayerPicker: false,
@@ -36,9 +61,9 @@ class CesiumMap extends HTMLElement {
       sceneModePicker: false,
       selectionIndicator: false,
       timeline: false,
-      navigationHelpButton: false,
+      navigationHelpButton: false
       // Add any Cesium Ion assets here
-      imageryProvider: new Cesium.IonImageryProvider({ assetId: 3812 })
+      // imageryProvider: new Cesium.IonImageryProvider({ assetId: 3812 })
     })
   }
 
@@ -128,12 +153,26 @@ class CesiumMap extends HTMLElement {
   }
 
   showPlaceOnMap (node, [lat, lng], secundary = false) {
-    const billboardCollection = new Cesium.BillboardCollection()
-    this.viewer.scene.primitives.add(billboardCollection)
+    if (!this.billboardCollection) {
+      this.billboardCollection = new Cesium.BillboardCollection()
+      this.viewer.scene.primitives.add(this.billboardCollection)
+    }
+    this.viewer.scene.primitives.add(this.billboardCollection)
 
-    const billboard = billboardCollection.add({
+    // Create a canvas element to draw the emoji
+    const canvas = document.createElement('canvas') // FIXME probably not the best way to do this...
+    canvas.width = 24
+    canvas.height = 24
+    const ctx = canvas.getContext('2d')
+
+    // Set the font and draw the emoji
+    ctx.font = '12px serif'
+    ctx.fillText(secundary ? '🔵' : '🔴', 8, 16)
+
+    const billboard = this.billboardCollection.add({
       position: Cesium.Cartesian3.fromDegrees(lng, lat),
-      image: secundary ? 'secundary-icon.png' : 'primary-icon.png'
+      image: canvas
+      // image: secundary ? 'secundary-icon.png' : 'primary-icon.png'
     })
 
     billboard.node = node
@@ -142,10 +181,12 @@ class CesiumMap extends HTMLElement {
   }
 
   clearMap () {
-    this.billboards.forEach(billboard => {
-      billboardCollection.remove(billboard)
-    })
-    this.billboards = []
+    if (this.billboardCollection) {
+      this.billboards.forEach(billboard => {
+        this.billboardCollection.remove(billboard)
+      })
+      this.billboards = []
+    }
   }
 }
 

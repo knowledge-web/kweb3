@@ -9,6 +9,7 @@
   <script type="importmap">{ "imports": { "three": "https://unpkg.com/three/build/three.module.js" }}</script>
 
   <script type="module" src="./comp/google-map.js"></script>
+  <!-- <script type="module" src="./comp/cesium-map.js"></script> -->
   <script type="module" src="./comp/journey-list.js"></script>
   <script type="module" src="./comp/kweb-video.js"></script>
 
@@ -77,16 +78,16 @@
       top: 0;
       left: 0;
     }
-    google-map { /* TODO move to google-map component */
+    .main-map { /* TODO move to google-map component */
       display: block;
       width: 350px;
       height: 300px;
       border-radius: 0 0 30px 0;
     }
-    google-map.no-location {
+    .main-map.no-location {
       opacity: 0.5;
     }
-    google-map #placeInfo {
+    .main-map #placeInfo {
       position: absolute;
       bottom: 0;
       background: rgba(255, 255, 255, 0.85);
@@ -94,7 +95,7 @@
       padding: 4px 8px;
       width: 100%;
     }
-    google-map #placeInfo .empty {
+    .main-map #placeInfo .empty {
       color: #a00;
     }
 
@@ -181,7 +182,8 @@
   <script src="./comp/3d-graph.js" type="module"></script>
 
   <div id="left-box">
-    <google-map id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
+    <google-map class="main-map" id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
+    <!-- <cesium-map class="main-map" api-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxNTRmNjQ1MC0xOTIxLTRkM2QtOTNmNC1lZDkxODYxNWE4ODMiLCJpZCI6MTM3NTg3LCJpYXQiOjE2ODM3Mzc5NjB9.KwjcnhYYtZbFEfG-H0TbssroK5gHFKTp8tdhe3EE6JA"></cesium-map> -->
     <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px; height: 600px;"></kweb-video>
     <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.srt"></kweb-video> -->
     <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.random.srt"></kweb-video> -->
