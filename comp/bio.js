@@ -50,32 +50,6 @@ function addHoverEventsToLinks (elem) {
   })
 }
 
-async function loadIcons ({ node, bio }) {
-  const icon = new Image();
-  const typeIcon = new Image();
-
-  const iconPromise = new Promise((resolve, reject) => {
-    icon.onload = () => resolve({ type: 'icon', src: icon.src });
-    icon.onerror = () => reject(new Error('Icon failed to load'));
-  });
-
-  const typeIconPromise = new Promise((resolve, reject) => {
-    typeIcon.onload = () => resolve({ type: 'typeIcon', src: typeIcon.src });
-    typeIcon.onerror = () => reject(new Error('Type Icon failed to load'));
-  });
-
-  icon.src = `/data-media/${node.id}/.data/Icon.png`;
-  if (node.typeId) typeIcon.src = `/data-media/${node.typeId}/.data/Icon.png`;
-  console.log(typeIcon.src, 'src')
-  try {
-    const loadedIcon = await Promise.race([iconPromise, typeIconPromise])
-    bio.querySelectorAll('img.icon-main').forEach(img => { img.src = loadedIcon.src })
-  } catch (error) {
-    bio.querySelectorAll('img.icon-main').forEach(img => { img.classList.add('icon-failed') })
-    console.log('Both icons failed to load:', error);
-  }
-}
-
 function normalizeString (str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
@@ -176,10 +150,9 @@ class BioComponent extends HTMLElement {
           margin-right: 10px; /* Adjust the margin to position the icon */
         }
         img.icon[src=""] { display: none; }
-        img.icon-failed { display: none; }
       </style>
       <div class="icon-title-wrapper">
-        <img class="icon icon-main" src="" />
+        <img class="icon icon-main" src="${node.icon ? `./data-media/${node.icon}/.data/Icon.png` : ''}" />
         <h2 class="title">${node.name}</h2>
       </div>
       <p class="oneliner">${fomatOneliner(node.label)}</p>
@@ -200,8 +173,6 @@ class BioComponent extends HTMLElement {
 
     // Add hover events to all links with #id=<some-id>
     addHoverEventsToLinks(bio)
-
-    loadIcons({ bio, node })
 
     // highlight dead links
     bio.querySelectorAll('a[href^="#id="]').forEach(link => {
