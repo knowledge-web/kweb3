@@ -16,6 +16,20 @@ marked.setOptions({
   // xhtml: false
 })
 
+function ucfirst (str) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+function endWithPeriod (str) {
+  if (!str) return ''
+  return str.endsWith('.') ? str : str + '.'
+}
+
+function fomatOneliner (str) {
+  if (!str) return ''
+  return ucfirst(endWithPeriod(str || ''))
+}
+
 function addHoverEventsToLinks (elem) {
   const links = elem.querySelectorAll('a[href^="#id="]')
   links.forEach(link => {
@@ -130,6 +144,13 @@ class BioComponent extends HTMLElement {
         h2 { font-size: 36px; }
         h3 { font-size: 20px; }
         h4 { font-size: 16px; }
+        .title {
+          margin-bottom: 4px;
+        }
+        .oneliner {
+          font-style: italic;
+          margin-bottom: 16px;
+        }
         p {
           line-height: 1.5em;
           color: rgba(0, 0, 0, 0.9);
@@ -159,8 +180,9 @@ class BioComponent extends HTMLElement {
       </style>
       <div class="icon-title-wrapper">
         <img class="icon icon-main" src="" />
-        <h2>${node.name}</h2>
+        <h2 class="title">${node.name}</h2>
       </div>
+      <p class="oneliner">${fomatOneliner(node.label)}</p>
       ${html}
       <h3>Links (${neighbors.length})</h3>
       <ul>
