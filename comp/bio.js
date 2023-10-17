@@ -54,17 +54,25 @@ function normalizeString (str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
+function toMap (arr) { // TODO: move to utils.js - DRY
+  const map = {}
+  arr.forEach(item => { map[item.id] = item })
+  return map
+}
+
 class BioComponent extends HTMLElement {
   constructor () {
     super()
     this.selected = {} // { node, nodes, links }
     this.hovered = {} // node
     this.nodeIds = []
+    this.allNodes = {}
   }
 
   connectedCallback () {
     window.addEventListener('dataLoaded', event => {
       const { nodes } = event.detail
+      this.allNodes = toMap(nodes)
       this.nodeIds = nodes.map(n => n.id)
     })
 
@@ -100,9 +108,13 @@ class BioComponent extends HTMLElement {
 
     const neighbors = nodes.filter(n => n.id !== node.id)
     const onlyMentioned = neighbors.filter(({ id, name }) => normalizeString(html).includes(normalizeString(name)) && !html.includes(`href="#id=${id}"`)).map(n => n.id)
-    
+
     // example .data/md-images/3afdc8c4-0738-4fac-aa63-651d5d2d2097.webp#$width=70p$
-    html = html.replaceAll('.data/md-images/', `/data-media/${node.id}/.data/md-images/`)
+    html = html.replaceAll('.data/md-images/', `/brain/${node.id}/.data/md-images/`)
+
+    const iconPath = (id) => `/brain/${id}/.data/Icon.png`
+    let icon = node.icon && iconPath(node.id)
+    if (!icon && this.allNodes[node.typeId]?.icon) icon = iconPath(node.typeId)
 
     // FIXME css --> Shadow DOM only
     bio.innerHTML = `
@@ -152,7 +164,7 @@ class BioComponent extends HTMLElement {
         img.icon[src=""] { display: none; }
       </style>
       <div class="icon-title-wrapper">
-        <img class="icon icon-main" src="${node.icon ? `./data-media/${node.icon}/.data/Icon.png` : ''}" />
+        <img class="icon icon-main" src="${icon ? icon : ''}" />
         <h2 class="title">${node.name}</h2>
       </div>
       <p class="oneliner">${fomatOneliner(node.label)}</p>
@@ -190,7 +202,7 @@ class BioComponent extends HTMLElement {
 
   async fetchContent (node) {
     try {
-      const response = await fetch(`./data/md/${node.id}/Notes.md`)
+      const response = await fetch(`./brain/${node.id}/Notes.md`)
       const text = await response.text()
       return text
     } catch (error) {

@@ -1,6 +1,8 @@
 /* global ForceGraph3D SpriteText */
 import { CSS2DRenderer, CSS2DObject } from '//unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js'
 
+let allNodes = {}
+
 function toMap (arr) {
   const map = {}
   arr.forEach(item => { map[item.id] = item })
@@ -54,8 +56,12 @@ async function initGraph (raw, options = {}) {
     .nodeColor(node => {
       // node.color || 'rgba(255,255,255,0.8)'
       if (selectedNode && node.id === selectedNode.id) return 'steelblue'
-      if (!highlightNodes.has(node)) return 'rgba(255,255,255,0.8)'
-      return (node === hoverNode) ? 'rgb(255,0,0,1)' : 'rgba(255,160,0,0.8)'
+      // if (!highlightNodes.has(node)) return 'rgba(255,255,255,0.8)'
+      if (node === hoverNode) return 'rgb(255,0,0,1)'
+      return node.color || 'rgba(255,160,0,0.8)'
+    })
+    .linkColor(link => {
+      return link.color || 'white'
     })
     .linkWidth(link => highlightLinks.has(link) ? 1 : 0)
     // .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 0)
@@ -63,7 +69,12 @@ async function initGraph (raw, options = {}) {
 
     .nodeThreeObject(node => {
       const nodeEl = document.createElement('div')
-      let html = node.iconId ? `<img class="icon icon-16" src="/data/${node.iconId}/icon.png" style="opacity: 1.0;" />` : ''
+
+      const iconPath = (id) => `/brain/${id}/.data/Icon.png`
+      let icon = node.icon && iconPath(node.id)
+      if (!icon && allNodes[node.typeId]?.icon) icon = iconPath(node.typeId)
+      let html = icon ? `<img class="icon" src="${icon}" style="opacity: 1.0; margin-right: 4px;" height="16" />` : ''
+
       html += node.name
       nodeEl.innerHTML = html
 
@@ -86,8 +97,7 @@ async function initGraph (raw, options = {}) {
     .linkThreeObject(link => {
       // extend link with text sprite
       const sprite = new SpriteText(`${link.name || ''}`)
-      // sprite.color = link.color || 'white'
-      sprite.color = 'rgba(127, 196, 255, 0.66)'
+      sprite.color = link.color || 'rgba(127, 196, 255, 0.66)'
       sprite.textHeight = 2
       // sprite.rotation = 100
       return sprite
@@ -148,6 +158,11 @@ function updateHighlight () {
 window.addEventListener('nodeSelected', event => {
   const { node, nodes, links } = event.detail
   initGraph({ nodes, links }, { selectedNode: node })
+})
+
+window.addEventListener('dataLoaded', event => {
+  const { nodes } = event.detail
+  allNodes = toMap(nodes)
 })
 
 // Test by triggering custom event like:
