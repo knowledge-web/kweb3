@@ -210,6 +210,8 @@ class BioComponent extends HTMLElement {
   }
 
   async fetchContent (node) {
+    if (node.md === false) return ''
+    // if (node.md === false && node.html) // TODO?
     try {
       const response = await fetch(`./brain/${node.id}/Notes.md`)
       const text = await response.text()
