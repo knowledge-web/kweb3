@@ -9,5 +9,5 @@ npx livereload # optional
 
 ```
 # Note to self
-rsync -av --progress --exclude '.git' ./kweb3 cloud:
+rsync -avL --progress --exclude '.git' ./kweb3 cloud:
 ```
