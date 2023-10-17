@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import { shortToLongId } from '../links.js'
 const { marked } = window
 marked.setOptions({
   // renderer: new marked.Renderer(),
@@ -20,34 +21,12 @@ function ucfirst (str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-function rearrangeAndSwapBytes (decodedBytes) {
-  const timeLow = decodedBytes.slice(0, 4).reverse();
-  const timeMid = decodedBytes.slice(4, 6).reverse();
-  const timeHiVersion = decodedBytes.slice(6, 8).reverse();
-  const clockSeqHiRes = decodedBytes.slice(8, 10);
-  const node = decodedBytes.slice(10);
-  
-  const rearrangedBytes = [...timeLow, ...timeMid, ...timeHiVersion, ...clockSeqHiRes, ...node];
-  const uuidArray = new Uint8Array(rearrangedBytes);
-  
-  // Convert to hex string
-  const uuidStr = [...uuidArray].map(b => b.toString(16).padStart(2, '0')).join('');
-  
-  // Format hex string as UUID
-  return `${uuidStr.slice(0, 8)}-${uuidStr.slice(8, 12)}-${uuidStr.slice(12, 16)}-${uuidStr.slice(16, 20)}-${uuidStr.slice(20)}`;
-}
-
 function replaceBrainLinks (content) {
-  const brainLinkPattern = /brain:\/\/([a-zA-Z0-9_-]+)/g;
+  const brainLinkPattern = /brain:\/\/([a-zA-Z0-9_-]+)(?:\/[^<>\[\]\(\)\s]*)?/g
   return content.replace(brainLinkPattern, (match, link) => {
-    try {
-      const decodedBytes = Array.from(atob(link + '==')).map(c => c.charCodeAt(0));
-      const uuidStr = rearrangeAndSwapBytes(decodedBytes);
-      return `#id=${uuidStr}`;
-    } catch (e) {
-      return match;
-    }
-  });
+    const longId = shortToLongId(link)
+    return `#id=${longId}`
+  })
 }
 
 function endWithPeriod (str) {
@@ -127,8 +106,7 @@ class BioComponent extends HTMLElement {
 
     let markdown = await this.fetchContent(node)
     markdown = replaceBrainLinks(markdown)
-    // render markdown
-    let html = marked.parse(markdown)
+    let html = marked.parse(markdown) // render markdown
 
     // Extract 'href="#id=' + link text from html
     const textLinks = [...html.matchAll(/href="#id=([^"]+)">([^<]+)<\/a>/g)].reduce((acc, [, id, text]) => {
