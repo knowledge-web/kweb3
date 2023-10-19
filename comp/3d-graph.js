@@ -76,7 +76,7 @@ async function initGraph (raw, options = {}) {
       const iconPath = (id) => `/brain/${id}/.data/Icon.png`
       let icon = node.icon && iconPath(node.id)
       if (!icon && allNodes[node.typeId]?.icon) icon = iconPath(node.typeId)
-      let html = icon ? `<img class="icon" src="${icon}" style="opacity: 1.0; margin-right: 4px;" height="16" />` : ''
+      let html = icon ? `<img class="icon" src="${icon}" style="opacity: 1.0; margin-right: 4px; margin-bottom: -4px;" height="24" />` : ''
 
       html += node.name
       nodeEl.innerHTML = html
