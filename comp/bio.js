@@ -125,7 +125,13 @@ class BioComponent extends HTMLElement {
     let icon = node.icon && iconPath(node.id)
     if (!icon && this.allNodes[node.typeId]?.icon) icon = iconPath(node.typeId)
 
+    const getIcon = (id) => {
+      const icon = this.allNodes[id]?.icon
+      return icon ? iconPath(id) : ''
+    }
+
     // FIXME css --> Shadow DOM only
+    node.tags = node.tags || []
     bio.innerHTML = `
       <style>
         * {
@@ -141,6 +147,18 @@ class BioComponent extends HTMLElement {
         h4 { font-size: 16px; }
         .title {
           margin-bottom: 4px;
+        }
+        .type {
+          font-size: 20px;
+          padding-bottom: 12px;
+        }
+        .type span {
+          padding: 3px 10px;
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 8px;
+        }
+        .type.empty, .tags.empty {
+          display: none;
         }
         .oneliner {
           font-style: italic;
@@ -165,6 +183,11 @@ class BioComponent extends HTMLElement {
           display: flex;
           align-items: center;
         }
+        img.icon-small {
+          width: 16px;
+          height: 16px;
+          margin-right: 4px; /* Adjust the margin to position the icon */
+        }
         img.icon-main {
           width: 32px;
           height: 32px;
@@ -176,6 +199,10 @@ class BioComponent extends HTMLElement {
         <img class="icon icon-main" src="${icon ? icon : ''}" />
         <h2 class="title">${node.name}</h2>
       </div>
+      <div class="type ${!node.typeId ? 'empty' : ''}" title="Type"><span>
+        <img class="icon icon-small" src="${getIcon(node.typeId)}" /> ${this.allNodes[node.typeId]?.name}
+      </span></div>
+      <div class="tags ${!node.tags.length ? 'empty' : ''}">Tags: ${node.tags.map(tag => `<span class="tag"><img class="icon icon-small" src="${getIcon(tag.id)}" /> ${tag.name}</span>`).join(', ')}</div>
       <p class="oneliner">${fomatOneliner(node.label)}</p>
       ${html}
       <h3>Links (${neighbors.length})</h3>
