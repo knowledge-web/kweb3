@@ -5,6 +5,62 @@ function toMap (arr) { // TODO: move to utils.js - DRY
   return map
 }
 
+function findPaths ({ nodes, links }, id1, id2, maxPaths = 1) {
+  // Create a mapping from node id to node object
+  const nodeMap = {};
+  nodes.forEach(node => {
+    nodeMap[node.id] = node;
+  });
+
+  // Initialize BFS queue and visited set
+  const queue = [{ nodeId: id1, path: [], linkNames: [] }];
+  const visited = new Set([id1]);
+
+  // To hold the found paths
+  const foundPaths = [];
+
+  while (queue.length > 0 && foundPaths.length < maxPaths) {
+    const { nodeId, path, linkNames } = queue.shift();
+
+    // Exclude nodes with a tag named "Meta"
+    if (nodeMap[nodeId].tags && nodeMap[nodeId].tags.some(tag => tag.name === "Meta")) {
+      continue;
+    }
+
+    if (nodeId === id2) {
+      // Found a path to the target node, add it to the found paths
+      foundPaths.push({
+        nodeNames: [nodeMap[id1].name, ...path.map(id => nodeMap[id].name)],
+        linkNames: linkNames
+      });
+      continue;
+    }
+
+    // Add neighbors to the queue
+    links.forEach(link => {
+      if (link.source === nodeId && !visited.has(link.target)) {
+        queue.push({
+          nodeId: link.target,
+          path: [...path, link.target],
+          linkNames: [...linkNames, link.name]
+        });
+        visited.add(link.target);
+      }
+    });
+  }
+
+  // Sort found paths by length
+  foundPaths.sort((a, b) => a.nodeNames.length - b.nodeNames.length);
+
+  return foundPaths;
+}
+
+// Test the function assuming global nodes and links arrays are defined
+// Replace these ids with the actual ids for "Swedenborg" and "Tesla" in your data
+// const paths = findPaths('id_of_Swedenborg', 'id_of_Tesla', 3);
+// console.log(paths);
+
+
 class KWebSearch extends HTMLElement {
   constructor () {
     super()
@@ -100,13 +156,37 @@ class KWebSearch extends HTMLElement {
       return icon ? iconPath(id) : ''
     }
     
+    clearTimeout(this.timeout)
+    this.timeout = setTimeout(() => {
+      const node = matchingNodes[0]
+      if (!node) return
+      const selectedId = window.location.hash.split('=')[1]
+      console.time(node.name)
+      const paths = findPaths({ nodes: this.nodes, links: this.links }, selectedId, node.id)
+      console.timeEnd(node.name)
+      let jumps = null 
+      if (paths[0]?.nodeNames?.length) jumps = paths[0].nodeNames.length - 1
+      console.log({ jumps })
+    }, 500)
+
     for (const node of matchingNodes) {
       const div = document.createElement('div')
       div.className = 'autocomplete-item'
+      div.id = `search-${node.id}`
       let html = ''
       const icon = getIcon(node.id) || getIcon(node.typeId)
       if (icon) html += `<img class="icon" src="${icon}" style="padding-right: 6px;" height="24" />`
       html += node.name
+      // TODO ~: with a delay, not blocking... one at the time and cache results?
+      // if (i++ < 1)  {
+      
+      //   const paths = findPaths({ nodes: this.nodes, links: this.links }, selectedId, node.id, 1)
+      //   console.log(paths, 'PATHS')
+      //   // paths.forEach(path => {
+      //   //   console.log(path)
+      //   //   // TODO show these!
+      //   // })
+      // }
       div.innerHTML = html
       div.addEventListener('click', () => {
         window.location.hash = `#id=${node.id}`
