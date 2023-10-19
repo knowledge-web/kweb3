@@ -1,10 +1,17 @@
 /* global HTMLElement, customElements, document, window */
+function toMap (arr) { // TODO: move to utils.js - DRY
+  const map = {}
+  arr.forEach(item => { map[item.id] = item })
+  return map
+}
+
 class KWebSearch extends HTMLElement {
   constructor () {
     super()
 
     this.nodes = []
     this.links = []
+    this.map = {}
 
     this.attachShadow({ mode: 'open' })
 
@@ -87,10 +94,20 @@ class KWebSearch extends HTMLElement {
 
     const matchingNodes = this.nodes.filter(node => node.name.toLowerCase().includes(value.toLowerCase()))
 
+    const iconPath = (id) => `/brain/${id}/.data/Icon.png` // DRY
+    const getIcon = (id) => { // DRY
+      const icon = this.map[id]?.icon
+      return icon ? iconPath(id) : ''
+    }
+    
     for (const node of matchingNodes) {
       const div = document.createElement('div')
       div.className = 'autocomplete-item'
-      div.innerText = node.name
+      let html = ''
+      const icon = getIcon(node.id) || getIcon(node.typeId)
+      if (icon) html += `<img class="icon" src="${icon}" style="padding-right: 6px;" height="24" />`
+      html += node.name
+      div.innerHTML = html
       div.addEventListener('click', () => {
         window.location.hash = `#id=${node.id}`
         itemsDiv.innerHTML = ''
@@ -116,4 +133,5 @@ window.addEventListener('dataLoaded', function (event) {
   const kwebSearch = document.querySelector('kweb-search')
   kwebSearch.nodes = event.detail.nodes
   kwebSearch.links = event.detail.links
+  kwebSearch.map = toMap(kwebSearch.nodes)
 })
