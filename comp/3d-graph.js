@@ -1,6 +1,9 @@
 /* global ForceGraph3D SpriteText */
 import { CSS2DRenderer, CSS2DObject } from '//unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js'
 
+const settings = window.settings || {} // Meeeh
+settings.brainArrows = true // TODO make this a setting
+
 let allNodes = {}
 
 function toMap (arr) {
@@ -102,6 +105,12 @@ async function initGraph (raw, options = {}) {
       // sprite.rotation = 100
       return sprite
     })
+    .linkDirectionalArrowLength(link => {
+      if (!settings.brainArrows) return 0
+      if (!link.dir) return null
+      return 4
+    })
+    .linkDirectionalArrowRelPos(1)
     .linkPositionUpdate((sprite, { start, end }) => {
       const middlePos = Object.assign(...['x', 'y', 'z'].map(c => ({
         [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
@@ -163,6 +172,16 @@ window.addEventListener('nodeSelected', event => {
 window.addEventListener('dataLoaded', event => {
   const { nodes } = event.detail
   allNodes = toMap(nodes)
+  if (!settings.brainArrows) return
+
+  event.detail.links.map(link => {
+    if (link.dir === -1) { // NOTE this is a hack to reverse the arrows & ~volatile
+      const { source } = link
+      link.source = link.target
+      link.target = source
+      link.dir = 1
+    }
+  })
 })
 
 // Test by triggering custom event like:
