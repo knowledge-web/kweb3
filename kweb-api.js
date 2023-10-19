@@ -41,6 +41,7 @@ export function selectNode (id) { // selects the node (fetches neighbors, etc. t
   const neighbors = Array.from(neighborIds).map(id => nodes.find(node => node.id === id))
 
   const additionalLinks = links.filter(link => neighborIds.has(link.source) && neighborIds.has(link.target))
+  additionalLinks.map(link => { link.secundary = true })
 
   const allLinks = [...neighborLinks, ...additionalLinks]
   const allNodes = [node, ...neighbors]

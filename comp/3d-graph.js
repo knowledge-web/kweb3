@@ -111,6 +111,7 @@ async function initGraph (raw, options = {}) {
       return 4
     })
     .linkDirectionalArrowRelPos(1)
+    .linkCurvature(link => link.secundary ? 0.5 : 0)
     .linkPositionUpdate((sprite, { start, end }) => {
       const middlePos = Object.assign(...['x', 'y', 'z'].map(c => ({
         [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
