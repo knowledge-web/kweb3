@@ -5,7 +5,8 @@ function toMap (arr) { // TODO: move to utils.js - DRY
   return map
 }
 
-function findPaths ({ nodes, links }, id1, id2, maxPaths = 1) {
+function findPaths ({ nodes, links }, id1, id2) {
+  const maxPaths = 1
   const nodeMap = {};
   const neighbors = {};
   nodes.forEach(node => {
@@ -25,7 +26,7 @@ function findPaths ({ nodes, links }, id1, id2, maxPaths = 1) {
   while (queue.length > 0 && foundPaths.length < maxPaths) {
     const { nodeId, path, linkNames } = queue.shift();
 
-    if (nodeMap[nodeId].tags && nodeMap[nodeId].tags.some(tag => tag.name === "Meta")) {
+    if (nodeMap[nodeId].tags && nodeMap[nodeId].tags.some(tag => (tag.name === "Meta" || tag.name === "Journey"))) {
       continue;
     }
 
@@ -55,12 +56,6 @@ function findPaths ({ nodes, links }, id1, id2, maxPaths = 1) {
   return foundPaths;
 }
   
-// Test the function assuming global nodes and links arrays are defined
-// Replace these ids with the actual ids for "Swedenborg" and "Tesla" in your data
-// const paths = findPaths('id_of_Swedenborg', 'id_of_Tesla', 3);
-// console.log(paths);
-
-
 class KWebSearch extends HTMLElement {
   constructor () {
     super()
@@ -136,12 +131,12 @@ class KWebSearch extends HTMLElement {
 
     searchBox.addEventListener('input', (e) => this.showSuggestions(e.target.value))
     randomButton.addEventListener('click', () => this.randomSelection())
-    searchBox.addEventListener('blur', (e) => {
-      setTimeout(() => {
-        const itemsDiv = this.shadowRoot.querySelector('.autocomplete-items')
-        itemsDiv.innerHTML = ''
-      }, 500)
-    })
+    // searchBox.addEventListener('blur', (e) => {
+    //   setTimeout(() => {
+    //     const itemsDiv = this.shadowRoot.querySelector('.autocomplete-items')
+    //     itemsDiv.innerHTML = ''
+    //   }, 500)
+    // })
   }
 
   showSuggestions (value) {
@@ -166,8 +161,9 @@ class KWebSearch extends HTMLElement {
       console.timeEnd(node.name)
       let jumps = null 
       if (paths[0]?.nodeNames?.length) jumps = paths[0].nodeNames.length - 1
-      console.log({ jumps })
-      console.log(paths)
+      console.log(paths, '<-- paths')
+      const jumpbox = this.shadowRoot.querySelector(`#search-${node.id} .jumps`)
+      if (jumpbox) jumpbox.innerHTML = jumps ? `(${jumps} jumps)` : ''
     }, 500)
 
     for (const node of matchingNodes) {
@@ -178,16 +174,8 @@ class KWebSearch extends HTMLElement {
       const icon = getIcon(node.id) || getIcon(node.typeId)
       if (icon) html += `<img class="icon" src="${icon}" style="padding-right: 6px;" height="24" />`
       html += node.name
-      // TODO ~: with a delay, not blocking... one at the time and cache results?
-      // if (i++ < 1)  {
-      
-      //   const paths = findPaths({ nodes: this.nodes, links: this.links }, selectedId, node.id, 1)
-      //   console.log(paths, 'PATHS')
-      //   // paths.forEach(path => {
-      //   //   console.log(path)
-      //   //   // TODO show these!
-      //   // })
-      // }
+      html += '<span class="jumps" style="padding-left: 8px; opacity: 0.5;"></span>'
+
       div.innerHTML = html
       div.addEventListener('click', () => {
         window.location.hash = `#id=${node.id}`
