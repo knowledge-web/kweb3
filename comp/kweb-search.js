@@ -5,57 +5,9 @@ function toMap (arr) { // TODO: move to utils.js - DRY
   return map
 }
 
-function findPaths ({ nodes, links }, id1, id2) {
-  const maxPaths = 1
-  const nodeMap = {};
-  const neighbors = {};
-  nodes.forEach(node => {
-    nodeMap[node.id] = node;
-  });
-  links.forEach(link => {
-    if (!neighbors[link.source]) {
-      neighbors[link.source] = [];
-    }
-    neighbors[link.source].push(link);
-  });
+// Initialize the Web Worker
+// const pathWorker = new Worker('comp/pathWorker.js')
 
-  const queue = [{ nodeId: id1, path: [], linkNames: [] }];
-  const visited = new Set([id1]);
-  const foundPaths = [];
-
-  while (queue.length > 0 && foundPaths.length < maxPaths) {
-    const { nodeId, path, linkNames } = queue.shift();
-
-    if (nodeMap[nodeId].tags && nodeMap[nodeId].tags.some(tag => (tag.name === "Meta" || tag.name === "Journey"))) {
-      continue;
-    }
-
-    if (nodeId === id2) {
-      foundPaths.push({
-        nodeNames: [nodeMap[id1].name, ...path.map(id => nodeMap[id].name)],
-        linkNames: linkNames
-      });
-      continue;
-    }
-
-    const nodeNeighbors = neighbors[nodeId] || [];
-    nodeNeighbors.forEach(link => {
-      if (!visited.has(link.target)) {
-        queue.push({
-          nodeId: link.target,
-          path: [...path, link.target],
-          linkNames: [...linkNames, link.name]
-        });
-        visited.add(link.target);
-      }
-    });
-  }
-
-  foundPaths.sort((a, b) => a.nodeNames.length - b.nodeNames.length);
-
-  return foundPaths;
-}
-  
 class KWebSearch extends HTMLElement {
   constructor () {
     super()
@@ -137,6 +89,25 @@ class KWebSearch extends HTMLElement {
     //     itemsDiv.innerHTML = ''
     //   }, 500)
     // })
+
+    // Set up a listener to receive messages from the worker
+    // XXX not great perhaps remove & redo completely? (still too slow etc)
+    // pathWorker.addEventListener('message', (e) => {
+    //   const { paths } = e.data;
+    //   let jumps = null;
+    //   if (paths[0]?.nodes?.length) jumps = paths[0].nodes.length - 1;
+
+    //   console.log(paths, '<-- paths')
+    //   // debugger
+    //   console.log(paths[0]?.nodes, '<-- paths')
+    //   const nodes = paths[0]?.nodes || []
+    //   const node = nodes[nodes.length - 1]
+    //   console.log(node, 'node')
+    //   if (!node || !node.id) return
+    //   const jumpbox = this.shadowRoot.querySelector(`#search-${node.id} .jumps`);
+    //   console.log(jumpbox, 'jumpbox')
+    //   if (jumpbox) jumpbox.innerHTML = jumps ? `(${jumps} jumps)` : '';
+    // })
   }
 
   showSuggestions (value) {
@@ -150,21 +121,28 @@ class KWebSearch extends HTMLElement {
       const icon = this.map[id]?.icon
       return icon ? iconPath(id) : ''
     }
-    
-    clearTimeout(this.timeout)
-    this.timeout = setTimeout(() => {
-      const node = matchingNodes[0]
-      if (!node) return
-      const selectedId = window.location.hash.split('=')[1]
-      console.time(node.name)
-      const paths = findPaths({ nodes: this.nodes, links: this.links }, selectedId, node.id, 3)
-      console.timeEnd(node.name)
-      let jumps = null 
-      if (paths[0]?.nodeNames?.length) jumps = paths[0].nodeNames.length - 1
-      console.log(paths, '<-- paths')
-      const jumpbox = this.shadowRoot.querySelector(`#search-${node.id} .jumps`)
-      if (jumpbox) jumpbox.innerHTML = jumps ? `(${jumps} jumps)` : ''
-    }, 500)
+
+    // TODO remove this completely? Replace w something else...
+    // clearTimeout(this.timeout);
+    // this.timeout = setTimeout(() => {
+    //   const node = matchingNodes[0];
+    //   if (!node) return;
+
+    //   const selectedId = window.location.hash.split('=')[1];
+    //   console.time(node.name);
+
+    //   // Post a message to the worker to start the path finding
+    //   pathWorker.postMessage({
+    //     nodes: this.nodes,
+    //     links: this.links,
+    //     selectedId: selectedId,
+    //     nodeId: node.id,
+    //     maxPaths: 3
+    //   });
+
+    //   // Timing and updating the UI will be handled in the worker's message listener
+    //   console.timeEnd(node.name);
+    // }, 500);
 
     for (const node of matchingNodes) {
       const div = document.createElement('div')
