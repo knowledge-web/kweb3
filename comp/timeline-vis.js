@@ -1,5 +1,12 @@
 /* global HTMLElement, vis, customElements */
 
+function toMap (arr) { // TODO: move to utils.js - DRY
+  const map = {}
+  arr.forEach(item => { map[item.id] = item })
+  console.log(map)
+  return map
+}
+
 function fixDate (dateString) { // TODO fix all.json instead!
   if (!dateString) return
   if (dateString[0] === '+') dateString = dateString.substring(1)
@@ -11,6 +18,7 @@ class TimelineVis extends HTMLElement {
     super()
 
     this.prevNode = {}
+    this.map = {} // node map used for icons only
 
     this.attachShadow({ mode: 'open' })
     // Styles
@@ -32,15 +40,23 @@ class TimelineVis extends HTMLElement {
       }
 
       .vis-item {
+        opacity: 0.7;
         height: 20px !important; /* Set height */
+        border-width: 0 !important;
       }
-      .vis-item .vis-item-content{
+      .vis-item .vis-item-content {
         font-size: 14px !important; /* Set font size */
         padding: 0 4px !important; /* Remove padding */
+        top: -3px;
+      }
+
+      .vis-item img {
+        position: relative !important;
+        top: 4px !important;
       }
 
       .vis-item:hover, .vis-item.hovered {
-        background-color: steelblue !important;
+        opacity: 1.0 !important;
       }
     `
 
@@ -114,11 +130,30 @@ class TimelineVis extends HTMLElement {
       //   });
       // });
 
+      const iconPath = (id) => `/brain/${id}/.data/Icon.png` // DRY
+      const getIcon = (id) => { // DRY
+        // console.log({map: this.map})
+        const icon = this.map[id]?.icon
+        return icon ? iconPath(id) : ''
+      }      
+
       window.addEventListener('nodeSelected', (event) => {
         this.selected = event.detail
         let data = this.selected.nodes.filter(node => node.birth?.date && node.death?.date)
         data = data.map(node => {
-          return { id: node.id, content: node.name, start: fixDate(node.birth.date), end: fixDate(node.death.date) }
+          const n = {
+            id: node.id,
+            className: `node--${node.id}`,
+            content: node.name,
+            start: fixDate(node.birth.date),
+            end: fixDate(node.death.date)
+          }
+          if (node.color) n.style = `background: ${node.color};`
+          const icon = getIcon(node.id) || getIcon(node.typeId)
+          if (icon) { 
+            n.content = `<img class="icon" src="${icon}" height="16" /> ${n.content}`
+          }
+          return n
         })
         this.updateData(data)
       })
@@ -132,10 +167,16 @@ class TimelineVis extends HTMLElement {
         const items = this.shadowRoot.querySelectorAll('#visualization .vis-item')
         items.forEach((itemElement) => { itemElement.classList.remove('hovered') })
         for (const item of items) {
-          if (item.textContent !== node.name) continue
+          const id = Array.from(item.classList).filter(cls => cls.startsWith('node--'))[0].split('--')[1]
+          if (id !== node.id) continue
           return item.classList.add('hovered') // done
         }
       })
+
+      window.addEventListener('dataLoaded', event => {
+        const { nodes } = event.detail
+        this.map = toMap(nodes)
+      })      
     })
   }
 
