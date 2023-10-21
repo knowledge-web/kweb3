@@ -42,6 +42,9 @@ class TimelineVis extends HTMLElement {
         padding: 0 4px !important; /* Remove padding */
         top: -3px;
       }
+      .vis-item.selected {
+        font-weight: bold;
+      }
 
       .vis-item img {
         position: relative !important;
@@ -125,7 +128,9 @@ class TimelineVis extends HTMLElement {
 
       window.addEventListener('nodeSelected', (event) => {
         this.selected = event.detail
+        const selectedId = this.selected.node.id
         let data = this.selected.nodes.filter(node => node.birth?.date && node.death?.date)
+        
         data = data.map(node => {
           const n = {
             id: node.id,
@@ -135,6 +140,7 @@ class TimelineVis extends HTMLElement {
             end: fixDate(node.death.date)
           }
           if (node.color) n.style = `background: ${node.color};`
+          if (node.id === selectedId) n.className += ' selected'
           return n
         })
         this.updateData(data)
