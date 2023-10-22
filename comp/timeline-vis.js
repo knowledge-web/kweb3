@@ -84,9 +84,27 @@ class TimelineVis extends HTMLElement {
         // { id: '6', content: 'item 6', start: '2014-04-27', type: 'point' }
       ])
 
-      const options = {}
+      const options = {
+        // option groupOrder can be a property name or a sort function
+        // the sort function must compare two groups and return a value
+        //     > 0 when a > b
+        //     < 0 when a < b
+        //       0 when a == b
+        groupOrder: function (a, b) {
+          return a.value - b.value;
+        },
+        editable: true,
+      }
 
       this.timeline = new vis.Timeline(container, this.items, options)
+
+      var groups = new vis.DataSet([
+        { id: 0, content: "Selected", value: 1 },
+        { id: 1, content: "", value: 2 },
+      ]);
+      this.timeline.setGroups(groups)      
+      this.timeline.setOptions(options)
+
 
       // Add click event listener
       this.timeline.on('select', (properties) => {
@@ -141,6 +159,7 @@ class TimelineVis extends HTMLElement {
           }
           if (node.color) n.style = `background: ${node.color};`
           if (node.id === selectedId) n.className += ' selected'
+          n.group = node.id === selectedId ? 0 : 1
           return n
         })
         this.updateData(data)
