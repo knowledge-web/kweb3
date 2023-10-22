@@ -28,22 +28,32 @@ class TimelineVis extends HTMLElement {
         display: none;
       }
       #visualization .vis-time-axis .vis-text {
-        color: #eee;
+        /* color: #eee; */
+      }
+      #visualization * { /* NOTE hacky way to do this */
+        border-color: rgba(255, 255, 255, 0.5) !important;
       }
 
       .vis-item {
-        opacity: 0.7;
-        height: 20px !important; /* Set height */
         border-width: 0 !important;
+      }
+      .vis-item:not(.selected) {
+        opacity: 0.75;
+        height: 20px !important;
         cursor: pointer;
       }
-      .vis-item .vis-item-content {
-        font-size: 14px !important; /* Set font size */
-        padding: 0 4px !important; /* Remove padding */
+      .vis-item.selected {
+        height: 25px !important;
+        font-weight: bold;
+      }
+      .vis-item:not(.selected) .vis-item-content {
+        font-size: 14px !important;
+        padding: 0 4px !important;
         top: -3px;
       }
-      .vis-item.selected {
-        font-weight: bold;
+      .vis-item.selected  .vis-item-content {
+        font-size: 16px !important;
+        top: -3px;
       }
 
       .vis-item img {
@@ -85,6 +95,8 @@ class TimelineVis extends HTMLElement {
       ])
 
       const options = {
+        verticalScroll: true,
+        maxHeight: 250,
         // option groupOrder can be a property name or a sort function
         // the sort function must compare two groups and return a value
         //     > 0 when a > b
@@ -188,6 +200,10 @@ class TimelineVis extends HTMLElement {
     this.items.clear()
     this.items.add(newItems)
     this.timeline.fit()
+    
+    setTimeout(() => {
+      this.shadowRoot.querySelector('.vis-vertical-scroll').scrollTop = 0
+    }, 500)
   }
 
   loadScript (url) {
