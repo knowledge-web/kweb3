@@ -28,7 +28,7 @@ class TimelineVis extends HTMLElement {
         display: none;
       }
       #visualization .vis-time-axis .vis-text {
-        /* color: #eee; */
+        color: rgba(255, 255, 255, 0.5) !important;
       }
       #visualization * { /* NOTE hacky way to do this */
         border-color: rgba(255, 255, 255, 0.5) !important;
@@ -104,8 +104,7 @@ class TimelineVis extends HTMLElement {
         //       0 when a == b
         groupOrder: function (a, b) {
           return a.value - b.value;
-        },
-        editable: true,
+        }
       }
 
       this.timeline = new vis.Timeline(container, this.items, options)
@@ -133,28 +132,21 @@ class TimelineVis extends HTMLElement {
       // Add mouseover event listener
       this.timeline.on('itemover', (properties) => {
         const id = properties.item
-        if (id) {
-          const hoveredItem = this.items.get(id)
-          const node = { id: hoveredItem.id, name: hoveredItem.content }
-          this.prevNode = node
-          const ev = new CustomEvent('hoverNode', { detail: { node, origin: 'timeline' } })
-          window.dispatchEvent(ev)
-        }
+        if (!id) return
+        const hoveredItem = this.items.get(id)
+        const node = { id: hoveredItem.id, name: hoveredItem.content }
+        this.prevNode = node
+        const ev = new CustomEvent('hoverNode', { detail: { node, origin: 'timeline' } })
+        window.dispatchEvent(ev)
       })
 
       // Add mouseout event listener
       this.timeline.on('itemout', (properties) => {
+        // const id = properties.item
+        // if (!id) return
         const ev = new CustomEvent('hoverNode', { detail: { node: {}, prevNode: this.prevNode, origin: 'timeline' } })
         window.dispatchEvent(ev)
       })
-
-      // this.timeline.on('changed', () => {
-      //   const itemElements = this.shadowRoot.querySelectorAll('.vis-item');
-      //   itemElements.forEach((itemElement) => {
-      //     itemElement.style.height = '20px';
-      //     itemElement.style.top = (parseFloat(itemElement.style.top) - 10) + 'px';  // Adjust as needed
-      //   });
-      // });
 
       window.addEventListener('nodeSelected', (event) => {
         this.selected = event.detail
