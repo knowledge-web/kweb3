@@ -64,7 +64,22 @@ class TimelineVis extends HTMLElement {
       .vis-item:hover, .vis-item.hovered {
         opacity: 1.0 !important;
       }
+
+      div.arrow {
+        position: absolute;
+        top: -44px;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: 1.5em;
+        color: rgba(255, 255, 255, 0.5);
+        z-index: 1000;
+      }
     `
+
+    const arrow = document.createElement('div')
+    arrow.classList.add('arrow')
+    arrow.innerHTML = '<span class="year">1807</span><br>↓'
 
     // Container for Timeline
     const container = document.createElement('div')
@@ -73,6 +88,7 @@ class TimelineVis extends HTMLElement {
 
     // Add elements to shadow DOM
     this.shadowRoot.appendChild(style)
+    this.shadowRoot.appendChild(arrow)
     this.shadowRoot.appendChild(container)
 
     this.initializeTimeline()
@@ -148,6 +164,21 @@ class TimelineVis extends HTMLElement {
         window.dispatchEvent(ev)
       })
 
+      function middleYear (start, end) {
+        const middleTimestamp = (start.getTime() + end.getTime()) / 2
+        const middleDate = new Date(middleTimestamp)
+        const middleYear = middleDate.getFullYear().toString()
+        return middleYear
+      }
+
+      this.timeline.on('rangechange', ({ start, end }) => {
+        this.shadowRoot.querySelector('.arrow .year').textContent = middleYear(start, end)
+      })
+      
+      this.timeline.on('rangechanged', ({ start, end }) => {
+        this.shadowRoot.querySelector('.arrow .year').textContent = middleYear(start, end)
+      })
+
       window.addEventListener('nodeSelected', (event) => {
         this.selected = event.detail
         const selectedId = this.selected.node.id
@@ -159,7 +190,8 @@ class TimelineVis extends HTMLElement {
             className: `node--${node.id}`,
             content: `<img class="icon" src="${getIcon(node)}" height="16" /> ${node.name}`,
             start: fixDate(node.birth.date),
-            end: fixDate(node.death.date)
+            end: fixDate(node.death.date),
+            title: node.label // hover text
           }
           if (node.color) n.style = `background: ${node.color};`
           if (node.id === selectedId) n.className += ' selected'
@@ -189,9 +221,10 @@ class TimelineVis extends HTMLElement {
   updateData (newItems) {
     // Hide timeline if no items
     this.shadowRoot.querySelector('#visualization').classList.toggle('empty', newItems.length === 0)
-    this.items.clear()
+    this.items.clear() // TODO instead of clearing, remove only the items that are not in newItems
     this.items.add(newItems)
-    this.timeline.fit()
+    this.timeline.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' }})
+    // TODO also pan to the proper year, middle of the selected span by default? the selected one is in group: 0 (alone there)
     
     setTimeout(() => {
       this.shadowRoot.querySelector('.vis-vertical-scroll').scrollTop = 0
