@@ -214,10 +214,17 @@ class BioComponent extends HTMLElement {
       <h4 style="${onlyInText.length ? '' : 'display: none;'}">Only in text (${onlyInText.length})</h4>
       <ul>${onlyInText.map(id => `<li><a href="#id=${id}">${textLinks[id]}</a></li>`).join('\n')}</ul>
       `
-      // TODO ~:
-      // <h3>Linking here</h4>
-      // TODO
-      // <h4>Likely mentions</h4>
+    // TODO ~:
+    // <h3>Linking here</h4>
+    // TODO
+    // <h4>Likely mentions</h4>
+
+    if (node.wikilink || node.wikidata) {
+      const links = []
+      if (node.wikilink) links.push(`Wikipedia: <a href="${node.wikilink}" target="_blank">${(node.wikilink.split('/wiki/')[1] || '').replaceAll('_', ' ')}</a>`)
+      if (node.wikidataId) links.push(`WikiData: <a href="https://www.wikidata.org/wiki/${node.wikidataId}" target="_blank">${node.wikidataId}</a>`)
+      bio.innerHTML += `<h3>Mappings</h3><p>${links.join('<br>')}</p>`
+    }
 
     // Add hover events to all links with #id=<some-id>
     addHoverEventsToLinks(bio)
