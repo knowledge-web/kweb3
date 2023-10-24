@@ -61,7 +61,7 @@ async function initGraph (raw, options = {}) {
       if (selectedNode && node.id === selectedNode.id) return 'steelblue'
       // if (!highlightNodes.has(node)) return 'rgba(255,255,255,0.8)'
       if (node === hoverNode) return 'rgb(255,0,0,1)'
-      return node.color || 'rgba(255,160,0,0.8)'
+      return node.color || 'rgba(255,255,255,0.8)'
     })
     .linkColor(link => {
       return link.color || 'white'
