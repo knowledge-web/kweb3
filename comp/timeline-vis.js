@@ -19,6 +19,8 @@ class TimelineVis extends HTMLElement {
     super()
     this.prevNode = {}
     this.attachShadow({ mode: 'open' })
+    this.closed = false
+
     // Styles
     const style = document.createElement('style')
     style.textContent = `
@@ -31,7 +33,7 @@ class TimelineVis extends HTMLElement {
         color: #eee;
         border: 0;
       }
-      #wrapper.empty * {
+      #wrapper.empty *, #wrapper.closed :not(.toggle) {
         display: none;
       }
       #visualization .vis-time-axis .vis-text {
@@ -80,7 +82,18 @@ class TimelineVis extends HTMLElement {
         text-align: center;
         font-size: 1.5em;
         color: rgba(255, 255, 255, 0.5);
-        z-index: 1000;
+        z-index: 100;
+      }
+
+      div.toggle {
+        position: absolute;
+        top: -33px;
+        right: 0;
+        padding: 4px;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.5);
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 100;
       }
     `
 
@@ -91,11 +104,16 @@ class TimelineVis extends HTMLElement {
     wrapper.innerHTML = `<div class="arrow">
       <span class="year">1807</span><br>↓
     </div>
+    <div class="toggle">🕙 toggle</div>
     <div id="visualization"></div>`
 
     // Add elements to shadow DOM
     this.shadowRoot.appendChild(style)
     this.shadowRoot.appendChild(wrapper)
+
+    this.shadowRoot.querySelector('.toggle').addEventListener('click', () => {
+      this.shadowRoot.querySelector('#wrapper').classList.toggle('closed')
+    })
 
     this.initializeTimeline()
   }
@@ -269,8 +287,10 @@ class TimelineVis extends HTMLElement {
 
     this.timeline.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
 
+    const scrollbar = this.shadowRoot.querySelector('.vis-vertical-scroll')
+    if (!scrollbar) return
     setTimeout(() => { // NOTE All is smooth except this...
-      this.shadowRoot.querySelector('.vis-vertical-scroll').scrollTop = 0
+      scrollbar.scrollTop = 0
     }, 100)
   }
 
