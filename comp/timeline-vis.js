@@ -217,18 +217,56 @@ class TimelineVis extends HTMLElement {
     })
   }
 
-  updateData (newItems) {
-    // Hide timeline if no items
+
+  // NOTE before we just did this:
+  // this.items.clear()
+  // this.items.add(newItems)
+  // this.timeline.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' }})
+  // NOTE Unhappy about the size of this new function, but it works for now
+  async updateData (newItems) {
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
     this.shadowRoot.querySelector('#wrapper').classList.toggle('empty', newItems.length === 0)
-    this.items.clear() // TODO instead of clearing, remove only the items that are not in newItems
-    this.items.add(newItems)
-    this.timeline.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' }})
-    // TODO also pan to the proper year, middle of the selected span by default? the selected one is in group: 0 (alone there)
-    
-    setTimeout(() => {
+    const { items } = this
+
+    // Get current and new item IDs
+    const currentIds = new Set(items.get().map(item => item.id));
+    const newIds = new Set(newItems.map(item => item.id));
+
+    // Identify items to add and remove
+    const toAdd = newItems.filter(item => !currentIds.has(item.id));
+    const toRemove = Array.from(currentIds).filter(id => !newIds.has(id));
+
+    const nrOperations = toAdd.length + toRemove.length
+    const step = Math.min(100, 1000 / nrOperations) // never take more than 1s
+
+    // Remove items one by one
+    for (const id of toRemove) {
+      items.remove([id]);
+      await delay(step);
+    }
+
+    // Add items one by one
+    for (const item of toAdd) {
+      items.add([item]);
+      await delay(step);
+    }
+
+    // Find the item with group=0, if it exists
+    const groupZeroItem = items.get({ filter: item => item.group === 0 })[0];
+
+    if (groupZeroItem) {
+      items.update([{ id: groupZeroItem.id, group: 0 }])
+      const middleDate = new Date((new Date(groupZeroItem.start).getTime() + new Date(groupZeroItem.end || groupZeroItem.start).getTime()) / 2);
+      this.timeline.moveTo(middleDate, { animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
+    }
+
+    this.timeline.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
+
+    setTimeout(() => { // NOTE All is smooth except this...
       this.shadowRoot.querySelector('.vis-vertical-scroll').scrollTop = 0
-    }, 500)
+    }, 100)
   }
+
 
   loadScript (url) {
     return new Promise((resolve, reject) => {
