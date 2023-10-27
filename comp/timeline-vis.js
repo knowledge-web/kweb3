@@ -7,6 +7,13 @@ function fixDate (dateString) { // TODO fix all.json instead!
   return new Date(dateString)
 }
 
+const prettyLifespan = (node) => {
+  if (!node.birth?.date) return ''
+  const birth = fixDate(node.birth.date).getFullYear().toString()
+  const death = node.death?.date ? fixDate(node.death.date).getFullYear().toString() : 'present'
+  return `${birth}–${death}`
+}
+
 class TimelineVis extends HTMLElement {
   constructor () {
     super()
@@ -189,9 +196,9 @@ class TimelineVis extends HTMLElement {
             className: `node--${node.id}`,
             content: `<img class="icon" src="${getIcon(node)}" height="16" /> ${node.name}`,
             start: fixDate(node.birth.date),
-            end: fixDate(node.death.date),
-            title: node.label // hover text
+            end: fixDate(node.death.date)
           }
+          n.title = prettyLifespan(node) // hover text
           if (node.color) n.style = `background: ${node.color};`
           if (node.id === selectedId) n.className += ' selected'
           n.group = node.id === selectedId ? 0 : 1
