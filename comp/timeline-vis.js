@@ -24,7 +24,7 @@ class TimelineVis extends HTMLElement {
         color: #eee;
         border: 0;
       }
-      #visualization.empty .vis-timeline {
+      #wrapper.empty * {
         display: none;
       }
       #visualization .vis-time-axis .vis-text {
@@ -77,19 +77,18 @@ class TimelineVis extends HTMLElement {
       }
     `
 
-    const arrow = document.createElement('div')
-    arrow.classList.add('arrow')
-    arrow.innerHTML = '<span class="year">1807</span><br>↓'
-
     // Container for Timeline
-    const container = document.createElement('div')
-    container.id = 'visualization'
-    container.classList.add('empty')
+    const wrapper = document.createElement('div')
+    wrapper.id = 'wrapper'
+    wrapper.classList.add('empty')
+    wrapper.innerHTML = `<div class="arrow">
+      <span class="year">1807</span><br>↓
+    </div>
+    <div id="visualization"></div>`
 
     // Add elements to shadow DOM
     this.shadowRoot.appendChild(style)
-    this.shadowRoot.appendChild(arrow)
-    this.shadowRoot.appendChild(container)
+    this.shadowRoot.appendChild(wrapper)
 
     this.initializeTimeline()
   }
@@ -220,7 +219,7 @@ class TimelineVis extends HTMLElement {
 
   updateData (newItems) {
     // Hide timeline if no items
-    this.shadowRoot.querySelector('#visualization').classList.toggle('empty', newItems.length === 0)
+    this.shadowRoot.querySelector('#wrapper').classList.toggle('empty', newItems.length === 0)
     this.items.clear() // TODO instead of clearing, remove only the items that are not in newItems
     this.items.add(newItems)
     this.timeline.fit({ animation: { duration: 1000, easingFunction: 'easeInOutQuad' }})
