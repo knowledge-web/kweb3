@@ -101,6 +101,7 @@ class TimelineVis extends HTMLElement {
     const wrapper = document.createElement('div')
     wrapper.id = 'wrapper'
     wrapper.classList.add('empty')
+    wrapper.classList.toggle('closed', localStorage.getItem('timelineClosed') === 'yes')
     wrapper.innerHTML = `<div class="arrow">
       <span class="year">1807</span><br>↓
     </div>
@@ -112,7 +113,8 @@ class TimelineVis extends HTMLElement {
     this.shadowRoot.appendChild(wrapper)
 
     this.shadowRoot.querySelector('.toggle').addEventListener('click', () => {
-      this.shadowRoot.querySelector('#wrapper').classList.toggle('closed')
+      const closed = this.shadowRoot.querySelector('#wrapper').classList.toggle('closed')
+      localStorage.setItem('timelineClosed', closed ? 'yes' : '')
     })
 
     this.initializeTimeline()
