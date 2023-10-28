@@ -155,6 +155,16 @@
       background-color: rgba(0,0,16, 0.85);
       z-index: 100;
     }
+
+    /* FIXME This is a hack to make it possible to just read bios from mobile */
+    @media screen and (orientation: portrait) and (max-width: 768px) {
+      #left-box { display: none; } /* NOTE still loading the components :P */
+      /* TODO consider instead to have the graph on top
+      fill width, 80% height ...and the bio below that? */
+      /* NOTE timeline has a toggle button & can stay! */
+      #top-box { left: 0; }
+      kweb-bio { width: 100%; padding-top: 30px; }
+    }
   </style>
 
 </head>

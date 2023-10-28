@@ -41,6 +41,7 @@ async function initGraph (raw, options = {}) {
 
   if (graph) return graph.graphData(data)
 
+  if (elem.clientWidth <= 768) return // FIXME
   const width = elem.clientWidth * 0.8
   // const height = elem.clientHeight
   graph = ForceGraph3D({
