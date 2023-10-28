@@ -83,12 +83,12 @@ class KWebSearch extends HTMLElement {
 
     searchBox.addEventListener('input', (e) => this.showSuggestions(e.target.value))
     randomButton.addEventListener('click', () => this.randomSelection())
-    // searchBox.addEventListener('blur', (e) => {
-    //   setTimeout(() => {
-    //     const itemsDiv = this.shadowRoot.querySelector('.autocomplete-items')
-    //     itemsDiv.innerHTML = ''
-    //   }, 500)
-    // })
+    searchBox.addEventListener('blur', (e) => {
+      setTimeout(() => {
+        const itemsDiv = this.shadowRoot.querySelector('.autocomplete-items')
+        itemsDiv.innerHTML = ''
+      }, 500)
+    })
 
     // Set up a listener to receive messages from the worker
     // XXX not great perhaps remove & redo completely? (still too slow etc)
