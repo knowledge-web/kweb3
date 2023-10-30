@@ -39,26 +39,6 @@ function fomatOneliner (str) {
   return ucfirst(endWithPeriod(str || ''))
 }
 
-function addHoverEventsToLinks (elem) {
-  const links = elem.querySelectorAll('a[href^="#id="]')
-  links.forEach(link => {
-    link.addEventListener('mouseover', function () {
-      const id = this.getAttribute('href').split('#id=')[1]
-      const node = { id }
-      const event = new CustomEvent('hoverNode', { detail: { node, origin: 'bio' } })
-      window.dispatchEvent(event)
-    })
-
-    link.addEventListener('mouseout', function () {
-      const id = this.getAttribute('href').split('#id=')[1]
-      const prevNode = { id }
-      const node = {}
-      const event = new CustomEvent('hoverNode', { detail: { node, prevNode, origin: 'bio' } })
-      window.dispatchEvent(event)
-    })
-  })
-}
-
 function normalizeString (str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
@@ -97,6 +77,28 @@ class BioComponent extends HTMLElement {
       this.showBio({ node })
     })
   }
+
+  addHoverEventsToLinks (elem) {
+    const links = elem.querySelectorAll('a[href^="#id="]')
+    links.forEach(link => {
+      const id = link.getAttribute('href').split('#id=')[1]
+      const oneliner = this.allNodes[id]?.label || '[ no one-liner ]'
+      link.setAttribute('title', oneliner)
+      link.addEventListener('mouseover', function () {
+        const node = { id }
+        const event = new CustomEvent('hoverNode', { detail: { node, origin: 'bio' } })
+        window.dispatchEvent(event)
+      })
+  
+      link.addEventListener('mouseout', function () {
+        const id = this.getAttribute('href').split('#id=')[1]
+        const prevNode = { id }
+        const node = {}
+        const event = new CustomEvent('hoverNode', { detail: { node, prevNode, origin: 'bio' } })
+        window.dispatchEvent(event)
+      })
+    })
+  }  
 
   async showBio ({ node, nodes, links }) {
     nodes = nodes || this.selected.nodes || []
@@ -290,7 +292,7 @@ class BioComponent extends HTMLElement {
     // <h4>Likely mentions</h4>
 
     // Add hover events to all links with #id=<some-id>
-    addHoverEventsToLinks(bio)
+    this.addHoverEventsToLinks(bio)
 
     // highlight dead links
     bio.querySelectorAll('a[href^="#id="]').forEach(link => {
