@@ -122,10 +122,8 @@ class BioComponent extends HTMLElement {
       const wordCount = getWordCount(section)
       const wikipediaLinkCount = getWikipediaLinkCount(section)
       const brainLinkCount = getBrainLinkCount(section)
-      tabControls += `<button class="tab" data-index="${index}">
-                        ver ${index + 1}
-                        <span class="tab-info">${wordCount} words ${wikipediaLinkCount} wiki ${brainLinkCount} link</span>
-                      </button>`
+      const title = `Words: ${wordCount}, Wiki: ${wikipediaLinkCount}, Links: ${brainLinkCount}`
+      tabControls += `<button class="tab" data-index="${index}" title="${title}">v${index + 1}</button>`
       tabContent += `<div class="tab-content" data-index="${index}" style="display: ${index === 0 ? 'block' : 'none'}">${section}</div>`
     })
 
@@ -165,20 +163,21 @@ class BioComponent extends HTMLElement {
     bio.innerHTML = `
       <style>
         .tabs {
+          position: fixed;
+          top: 0;
+          right: 10px;
           display: flex;
           justify-content: start;
           align-items: center;
           margin-bottom: 20px;
-          // border-bottom: 2px solid #ccc;
         }
         
         .tab {
           cursor: pointer;
-          padding: 10px 20px;
-          margin-right: 5px;
+          padding: 4px 8px;
+          margin-right: 2px;
           font-size: 16px;
           border: none;
-          background-color: #f1f1f1;
           border-radius: 4px 4px 0 0;
           border-bottom: 2px solid #ccc;
         }
@@ -187,23 +186,15 @@ class BioComponent extends HTMLElement {
           background-color: #ddd;
         }
         
-        .tab-info {
-          font-size: 12px;
-          margin-left: 5px;
-          color: #777;
+        .tab.active {
+          background-color: #ccc;
         }
-        
+
         /* Initially display the first tab content */
         .tab-content[data-index="0"] {
           display: block;
         }
       
-        .tab-info {
-          display: block;
-          font-size: 10px;
-        }
-        .tab-info span { font-size: 10px; }
-
         * {
           font-family: 'Source Serif Pro', sans-serif;
           font-size: 18px;
@@ -274,9 +265,7 @@ class BioComponent extends HTMLElement {
       </span></div>
       <div class="tags ${!node.tags.length ? 'empty' : ''}">Tags: ${node.tags.map(tag => `<span class="tag"><img class="icon icon-small" src="${getIcon(tag.id)}" /> ${tag.name}</span>`).join(', ')}</div>
       <p class="oneliner">${fomatOneliner(node.label)}</p>
-
-      ${wikilinks}
-
+  
       <div class="tabs">
         ${tabControls}
       </div>
@@ -292,6 +281,8 @@ class BioComponent extends HTMLElement {
       </ul>
       <h4 style="${onlyInText.length ? '' : 'display: none;'}">Only in text (${onlyInText.length})</h4>
       <ul>${onlyInText.map(id => `<li><a href="#id=${id}">${textLinks[id]}</a></li>`).join('\n')}</ul>
+
+      ${wikilinks}
       `
     // TODO ~:
     // <h3>Linking here</h4>
@@ -320,6 +311,7 @@ class BioComponent extends HTMLElement {
         tabContentContainers.forEach((container, i) => {
           container.style.display = i === index ? 'block' : 'none'
         })
+        tabs.forEach((tab, i) => { tab.classList.toggle('active', i === index) })
       })
     })
 
