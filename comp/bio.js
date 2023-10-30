@@ -73,8 +73,10 @@ class BioComponent extends HTMLElement {
     window.addEventListener('nodeHovered', event => {
       const { node, origin } = event.detail
       if (origin === 'bio') return
+      if (this.selected.node.id === node.id) return // hover same node; do nothing
+      if (!node.id && !this.hovered?.id) return // never hoved another node; do nothing
       this.hovered = node
-      this.showBio({ node })
+      this.showBio({ node }, { hover: true })
     })
   }
 
@@ -100,10 +102,14 @@ class BioComponent extends HTMLElement {
     })
   }  
 
-  async showBio ({ node, nodes, links }) {
+  async showBio ({ node, nodes, links }, { hover = false } = {}) {
+    this.scrollTops = this.scrollTops || {}
+    if (!hover) this.scrollTops = {}
+
     nodes = nodes || this.selected.nodes || []
     links = links || this.selected.links || []
     const bio = document.getElementById('bio')
+    if (bio.scrollTop) this.scrollTops[this.selected.node.id] = bio.scrollTop
     if (!node || !node.id) node = this.selected.node
 
     let markdown = await this.fetchContent(node)
@@ -317,7 +323,7 @@ class BioComponent extends HTMLElement {
       })
     })
 
-    bio.scrollTop = 0
+    bio.scrollTop = this.scrollTops[node.id] || 0
   }
 
   async fetchContent (node) {
