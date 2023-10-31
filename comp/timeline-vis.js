@@ -152,7 +152,7 @@ class TimelineVis extends HTMLElement {
       this.timeline = new vis.Timeline(container, this.items, options)
 
       var groups = new vis.DataSet([
-        { id: 0, content: "Selected", value: 1 },
+        { id: 0, content: "-", value: 1 }, // needs to have some content or the scrollbar breaks(?)
         { id: 1, content: "", value: 2 },
       ]);
       this.timeline.setGroups(groups)      
