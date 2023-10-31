@@ -266,7 +266,7 @@ class TimelineVis extends HTMLElement {
     const nrOperations = toAdd.length + toRemove.length
     const step = Math.min(100, 1000 / nrOperations) // never take more than 1s
 
-    // group zero update (top / selected)
+    // FIXME Horrid code group zero update (top / selected)
     const prevZero = items.get({ filter: item => item.group === 0 })[0]
     if (prevZero) items.update([{ id: prevZero.id, group: 1 }]) // move to "commoners"
     const newZ = newItems.filter(item => item.group === 0)[0]
