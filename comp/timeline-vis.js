@@ -266,6 +266,15 @@ class TimelineVis extends HTMLElement {
     const nrOperations = toAdd.length + toRemove.length
     const step = Math.min(100, 1000 / nrOperations) // never take more than 1s
 
+    // group zero update (top / selected)
+    const prevZero = items.get({ filter: item => item.group === 0 })[0]
+    if (prevZero) items.update([{ id: prevZero.id, group: 1 }]) // move to "commoners"
+    const newZ = newItems.filter(item => item.group === 0)[0]
+    if (newZ) {
+      const exists = items.get({ filter: i => i.id === newZ.id })[0]
+      if (exists) items.update([{ id: newZ.id, group: 0 }]) // move to "selected" / top
+    }
+
     // Remove items one by one
     for (const id of toRemove) {
       items.remove([id]);
@@ -278,11 +287,12 @@ class TimelineVis extends HTMLElement {
       await delay(step);
     }
 
+    items.update([{ id: newZ.id, group: 0 }]) // NOTE may already have been done (group zero stuff above)
+
     // Find the item with group=0, if it exists
     const groupZeroItem = items.get({ filter: item => item.group === 0 })[0];
-
     if (groupZeroItem) {
-      items.update([{ id: groupZeroItem.id, group: 0 }])
+      items.update([{ id: groupZeroItem.id, group: 0 }]) // NOTE needed!?
       const middleDate = new Date((new Date(groupZeroItem.start).getTime() + new Date(groupZeroItem.end || groupZeroItem.start).getTime()) / 2);
       this.timeline.moveTo(middleDate, { animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
     }
