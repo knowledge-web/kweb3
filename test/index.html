@@ -1,131 +1,91 @@
+<!DOCTYPE html>
+<html>
 <head>
-  <style> body { margin: 0; } </style>
-  <script src="//unpkg.com/3d-force-graph"></script>
+  <title>3D Force Graph Example</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    #slider-container {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+    }
+    #slider {
+      width: 99%;
+    }
+  </style>
 </head>
-
 <body>
-  <div id="3d-graph"></div>
-
-  <!-- Add a range input slider to control the birth date threshold -->
-  <div style="position: absolute; z-index: 1; top: 10px; width: 180px; left: 10px;">
-    <input type="range" id="yearSlider" min="0" max="2000" value="2000" style="width: 100%;" />
-    <label for="yearSlider" id="yearLabel">Year: 2000</label>
+  <div id='3d-graph'></div>
+  <div id='slider-container'>
+    <input type='range' id='slider' min='0' max='4000' value='1000'>
   </div>
+  <script src='https://unpkg.com/3d-force-graph'></script>
 
   <script>
-    let yt = 2000
-  
-    // Fetch the JSON data with the nodes and links
-    fetch('/data/all.json')
-      .then(res => res.json())
-      .then(data => {
 
-        // Reduce the number of nodes for debugging
-        const nrNodes = 3000;
-        const reducedNodes = data.nodes.slice(0, nrNodes);
-        const reducedNodeIds = new Set(reducedNodes.map(node => node.id));
-        // Filter out links that don't connect the remaining nodes
-        const reducedLinks = data.links.filter(link => 
-          reducedNodeIds.has(link.source) && reducedNodeIds.has(link.target)
-        )
-        data.nodes = reducedNodes;
-        data.links = reducedLinks;
+async function main () {
+  console.log('Fetching JSON data...');
+  const response = await fetch('https://k-web3.fillthatvoid.com/data/all.json');
+  const data = await response.json();
+  console.log('Fetched JSON data.');
 
-        // Filter out broken links
-        const nodeIds = new Set(data.nodes.map(node => node.id))
-        const filteredLinks = data.links.filter(link =>  nodeIds.has(link.source) && nodeIds.has(link.target))
-        data.links = filteredLinks
+  let { nodes, links } = data;
+  nodes = nodes.filter(node => node.kind === 1);
+  console.log(`Initial nodes: ${nodes.length}, links: ${links.length}`);
+  nodes = nodes.filter(node => node.birth.date) // NOTE keep only people (with birthdates for this)
+  nodes.map(node => {
+    let year = node.birth.date.split('-')[0] || '0'
+    year = year.replaceAll('+', '') * 1
+    node.year = year + 25 // a bit random but this is just a test.
+  })
 
-        // Filter out nodes without a birth.date
-        const visibleNodes = data.nodes.filter(node => node.birth && node.birth.date);
-        const visibleNodeIds = new Set(visibleNodes.map(node => node.id));
+  const nodeIds = new Set(nodes.map(node => node.id));
+  links = links.filter(link => nodeIds.has(link.source) && nodeIds.has(link.target));
+  console.log(`Filtered nodes: ${nodes.length}, links: ${links.length}`);
 
-        // Filter out links that are connected to nodes without a birth.date
-        const visibleLinks = data.links.filter(link => 
-          visibleNodeIds.has(link.source) && visibleNodeIds.has(link.target)
-        );
+  const Graph = ForceGraph3D()(document.getElementById('3d-graph'));
+  Graph.graphData({ nodes, links });
+  Graph.enableNodeDrag(false);
 
-        // Calculate the degree for each node
-        const nodeDegrees = data.nodes.map(node => ({
-          id: node.id,
-          degree: data.links.reduce((acc, link) => acc + (link.source === node.id || link.target === node.id ? 1 : 0), 0)
-        }));
+  const slider = document.getElementById('slider');
+  slider.max = nodes.length;
+  slider.value = 1000;
 
-        // Create a map for quick lookup of degrees by node ID
-        const degreeMap = new Map(nodeDegrees.map(node => [node.id, node.degree]));
+  const nodeIndexMap = new Map();
+  nodes.forEach((node, idx) => nodeIndexMap.set(node.id, idx));
 
+  let threshold = 1000;
+  slider.addEventListener('input', function() {
+    threshold = parseInt(slider.value, 10);
+    console.log(`Slider value: ${threshold}`);
+    Graph.nodeVisibility((node, idx) => idx < threshold);
+    Graph.linkVisibility(link => nodeIndexMap.get(link.source.id) < threshold && nodeIndexMap.get(link.target.id) < threshold);
+  });
 
-        const elem = document.getElementById('3d-graph');
-        const Graph = ForceGraph3D()(elem)
-          .graphData(data) // Use the fetched data to render the graph
-          .nodeRelSize(1) // Base size for nodes, feel free to adjust
-          .nodeVal(node => degreeMap.get(node.id) || 0) // Size nodes based on degree
-          .nodeColor(node => node.color || '#ffffff') // Color nodes based on the color property
-          .nodeVisibility(node => {
-            // return false
-            if (node.birth && node.birth.date) {
-              // If the date has a + or -, strip it and convert the year to a number
-              const year = parseInt(node.birth.date.replace(/[+-]/, ''));
-              return year <= yt
-            }
-            return false // Hide nodes without a birth.date
-          })
-          .linkVisibility(link => {
-            // Only show links if both source and target nodes are visible
-            const sourceVisible = Graph.nodeVisibility(Graph.graphData().nodes.find(node => node.id === link.source));
-            const targetVisible = Graph.nodeVisibility(Graph.graphData().nodes.find(node => node.id === link.target));
-            return sourceVisible && targetVisible;
-          })
+  setTimeout(() => {
+    Graph.nodeVisibility((node, idx) => idx < threshold);
+    Graph.linkVisibility(link => nodeIndexMap.get(link.source.id) < threshold && nodeIndexMap.get(link.target.id) < threshold);
+  }, 1)
 
-          // .nodeAutoColorBy('group') // Or any other property you want to use for color coding
-          // .nodeLabel(node => `${node.name}: ${node.description}`) // Adjust depending on your JSON structure
-          // .linkDirectionalParticles(4)
-          // .linkDirectionalParticleSpeed(d => d.value * 0.001)
-          .enableNodeDrag(false)
-          // .warmupTicks(10)
-          // .cooldownTicks(100)
-          // .cooldownTime(5000)
-          // .onNodeClick(node => {
-          //   // Define the action on node click, e.g., display more information
-          //   alert(`Node clicked:\n${node.name}`);
-          // });
+  let flying
+  flying = Graph.onEngineStop(() => {
+    setInterval(() => {
+      const visibleNodes = nodes.filter((node, idx) => idx < threshold);
+      const randomNode = visibleNodes[Math.floor(Math.random() * visibleNodes.length)];
+      const distance = 40;
+      const distRatio = 1 + distance/Math.hypot(randomNode.x, randomNode.y, randomNode.z);
+      const newPos = randomNode.x || randomNode.y || randomNode.z
+        ? { x: randomNode.x * distRatio, y: randomNode.y * distRatio, z: randomNode.z * distRatio }
+        : { x: 0, y: 0, z: distance };
+      Graph.cameraPosition(newPos, randomNode, 3000);
+    }, 7000);
+  });
+}
+main()
 
-          // Initialize node and link visibility based on the slider's initial value
-          // updateVisibility(2000);
-
-          // Add an event listener to the slider
-          document.getElementById('yearSlider').addEventListener('input', function(e) {
-            const yearThreshold = +e.target.value;
-            document.getElementById('yearLabel').textContent = `Year: ${yearThreshold}`;
-            updateVisibility(yearThreshold);
-          });
-
-          function updateVisibility(yearThreshold) {
-            yt = yearThreshold
-            Graph
-              .nodeColor(Graph.nodeColor())
-              .linkWidth(Graph.linkWidth())
-              .linkDirectionalParticles(Graph.linkDirectionalParticles())
-              .nodeThreeObject(Graph.nodeThreeObject())
-
-            // const visibleNodes = Graph.graphData().nodes.filter(node => Graph.nodeVisibility(node));
-            // const visibleLinks = Graph.graphData().links.filter(link => Graph.linkVisibility(link));
-            // console.log(`Visible Nodes: ${visibleNodes.length}, Visible Links: ${visibleLinks.length}`);
-
-            return
-            // Update node visibility based on the year threshold
-
-            // Graph.nodeVisibility(node => {
-            //   // Extract the year from the node.birth.date property
-            //   const year = node.birth && node.birth.date ? parseInt(node.birth.date.slice(1)) : null;
-            //   console.log({ year })
-            //   // Check if the year is less than the threshold and the date has a '+' prefix
-            //   return year && node.birth.date.startsWith('+') && year <= yearThreshold;
-            // });
-
-            // // Update link visibility. A link is visible if both connected nodes are visible
-            // Graph.linkVisibility(link => Graph.nodeVisibility(link.source) && Graph.nodeVisibility(link.target));
-          }
-      })
   </script>
 </body>
+</html>
