@@ -122,6 +122,11 @@ async function initGraph (raw, options = {}) {
       Object.assign(sprite.position, middlePos)
     })
 
+    .onLinkHover((link, prevLink) => {
+      // TODO light up etc...
+      // and possible to selct link... at some point
+      // console.log('link', link && link.name)
+    })
     .onNodeHover((node, prevNode) => {
       const event = new CustomEvent('hoverNode', { detail: { node, origin: 'graph' } })
       window.dispatchEvent(event)

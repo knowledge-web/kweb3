@@ -36,7 +36,7 @@
   <div id='3d-graph'></div>
   <div id='slider-container'>
     <input type='range' id='slider' min='1400' max='2023' value='2023'><br>
-    <input type='range' id='cslider' min='1400' max='2000' step='100'>
+    <input type='range' id='cslider' min='1400' max='2023' step='1'>
   </div>
 
   <script type="importmap">{ "imports": { "three": "//unpkg.com/three/build/three.module.js" }}</script>
@@ -106,10 +106,20 @@ async function main () {
   })
 
   cslider.addEventListener('input', function() {
-    cent = cslider.value
-    Graph.nodeColor(Graph.nodeColor())
-    Graph.linkColor(Graph.linkColor())
-  })
+    // Graph.nodeColor(Graph.nodeColor()) // OLD Version also set #cslider step=100 in the HTML
+    // Graph.linkColor(Graph.linkColor())
+    // return
+    cent = parseInt(cslider.value, 10);
+    const yearLowerBound = cent - 100; // Set lower bound to 100 years before the selected year
+
+    Graph.nodeVisibility(node => node.year <= cent && node.year > yearLowerBound);
+    Graph.linkVisibility(link => {
+      const sourceVisibility = nodeIndexMap.get(link.source.id) <= cent && nodeIndexMap.get(link.source.id) > yearLowerBound;
+      const targetVisibility = nodeIndexMap.get(link.target.id) <= cent && nodeIndexMap.get(link.target.id) > yearLowerBound;
+      return sourceVisibility && targetVisibility;
+    });
+    document.getElementById('year').innerHTML = `${cent - 100} - ${cent}`;
+  });
 
   setTimeout(() => {
     Graph.nodeVisibility(node => node.year < threshold)
@@ -125,11 +135,11 @@ async function main () {
         "rgba(211, 47, 47, A)"   // Red
       ];
 
-      const alpha = node.century == cent ? 1 : 0.1
+      const alpha = node.century == cent ? 1 : 1
       return colors[node.century / 100 - 14].replace('A', alpha)
     })
     Graph.linkColor(link => {
-      const alpha = nodeIndexC.get(link.source.id) == cent && nodeIndexC.get(link.target.id) == cent ? 1 : 0.1
+      const alpha = nodeIndexC.get(link.source.id) == cent && nodeIndexC.get(link.target.id) == cent ? 1 : 1
       return `rgba(255, 255, 255, ${alpha})`
     })
   }, 1)
