@@ -15,12 +15,26 @@
     #slider {
       width: 99%;
     }
+
+    #year {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: 36px;
+      font-family: sans-serif;
+      color: #fff;
+      opacity: 0.33;
+      background: rgba(127, 127, 127, 0.1);
+      padding: 0.5em 1em;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
+  <div id='year'>1800</div>
   <div id='3d-graph'></div>
   <div id='slider-container'>
-    <input type='range' id='slider' min='0' max='4000' value='1000'>
+    <input type='range' id='slider' min='1200' max='2023'>
   </div>
   <script src='https://unpkg.com/3d-force-graph'></script>
 
@@ -40,6 +54,8 @@ async function main () {
     let year = node.birth.date.split('-')[0] || '0'
     year = year.replaceAll('+', '') * 1
     node.year = year + 25 // a bit random but this is just a test.
+    node.century = Math.floor(node.year / 100) * 100
+    if (node.century < 1200) node.century = 1200
   })
 
   const nodeIds = new Set(nodes.map(node => node.id));
@@ -48,41 +64,62 @@ async function main () {
 
   const Graph = ForceGraph3D()(document.getElementById('3d-graph'));
   Graph.graphData({ nodes, links });
-  Graph.enableNodeDrag(false);
+  Graph.enableNodeDrag(false)
+  Graph.warmupTicks(20)
+  Graph.cooldownTicks(0)
+  Graph.nodeAutoColorBy('century')
+  Graph.linkOpacity(0.075)
+  Graph.onNodeClick(node => {
+    clearTimeout(flying)
+    flying = false
+    focusNode(node)
+  })
 
-  const slider = document.getElementById('slider');
-  slider.max = nodes.length;
-  slider.value = 1000;
+  let threshold = 1800
+  const slider = document.getElementById('slider')
+  slider.value = threshold
 
-  const nodeIndexMap = new Map();
-  nodes.forEach((node, idx) => nodeIndexMap.set(node.id, idx));
+  const nodeIndexMap = new Map()
+  nodes.forEach(node => nodeIndexMap.set(node.id, node.year))
 
-  let threshold = 1000;
   slider.addEventListener('input', function() {
-    threshold = parseInt(slider.value, 10);
-    console.log(`Slider value: ${threshold}`);
-    Graph.nodeVisibility((node, idx) => idx < threshold);
-    Graph.linkVisibility(link => nodeIndexMap.get(link.source.id) < threshold && nodeIndexMap.get(link.target.id) < threshold);
-  });
+    threshold = parseInt(slider.value, 10)
+    console.log(`Slider value: ${threshold}`)
+    Graph.nodeVisibility(node => node.year < threshold)
+    Graph.linkVisibility(link => nodeIndexMap.get(link.source.id) < threshold && nodeIndexMap.get(link.target.id) < threshold)
+    document.getElementById('year').innerHTML = threshold
+  })
 
   setTimeout(() => {
-    Graph.nodeVisibility((node, idx) => idx < threshold);
-    Graph.linkVisibility(link => nodeIndexMap.get(link.source.id) < threshold && nodeIndexMap.get(link.target.id) < threshold);
+    Graph.nodeVisibility(node => node.year < threshold)
+    Graph.linkVisibility(link => nodeIndexMap.get(link.source.id) < threshold && nodeIndexMap.get(link.target.id) < threshold)
   }, 1)
 
+  function focusNode (node) {
+    const distance = 40
+    const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z)
+    const newPos = node.x || node.y || node.z
+      ? { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }
+      : { x: 0, y: 0, z: distance }
+    Graph.cameraPosition(newPos, node, 3000)
+  }
+
+  function focusRandomNode () {
+    const visibleNodes = nodes.filter(node => node.year < threshold)
+    const randomNode = visibleNodes[Math.floor(Math.random() * visibleNodes.length)]
+    focusNode(randomNode)
+  }
+
   let flying
-  flying = Graph.onEngineStop(() => {
-    setInterval(() => {
-      const visibleNodes = nodes.filter((node, idx) => idx < threshold);
-      const randomNode = visibleNodes[Math.floor(Math.random() * visibleNodes.length)];
-      const distance = 40;
-      const distRatio = 1 + distance/Math.hypot(randomNode.x, randomNode.y, randomNode.z);
-      const newPos = randomNode.x || randomNode.y || randomNode.z
-        ? { x: randomNode.x * distRatio, y: randomNode.y * distRatio, z: randomNode.z * distRatio }
-        : { x: 0, y: 0, z: distance };
-      Graph.cameraPosition(newPos, randomNode, 3000);
-    }, 7000);
-  });
+  function randomNodeRepeat() {
+    focusRandomNode()
+    flying = setTimeout(() => randomNodeRepeat, 7000)
+  }
+
+  Graph.onEngineStop(() => {
+    if (flying === false) return
+    setTimeout(randomNodeRepeat, 3000)
+  })
 }
 main()
 
