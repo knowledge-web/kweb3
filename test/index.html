@@ -6,15 +6,15 @@
     html, body {
       margin: 0;
       padding: 0;
+      background: black;
     }
     #slider-container {
       position: absolute;
       bottom: 20px;
       width: 100%;
     }
-    #slider {
-      width: 99%;
-    }
+    #slider { width: 99%; }
+    #cslider { width: 99%; }
 
     #year {
       position: absolute;
@@ -29,16 +29,19 @@
       z-index: 1000;
     }
   </style>
+  <script src='https://unpkg.com/3d-force-graph'></script>
 </head>
 <body>
-  <div id='year'>1800</div>
+  <div id='year'>2023</div>
   <div id='3d-graph'></div>
   <div id='slider-container'>
-    <input type='range' id='slider' min='1200' max='2023'>
+    <input type='range' id='slider' min='1400' max='2023' value='2023'><br>
+    <input type='range' id='cslider' min='1400' max='2000' step='100'>
   </div>
-  <script src='https://unpkg.com/3d-force-graph'></script>
 
-  <script>
+  <script type="importmap">{ "imports": { "three": "//unpkg.com/three/build/three.module.js" }}</script>
+  <script type="module">
+    import { UnrealBloomPass } from '//unpkg.com/three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 async function main () {
   console.log('Fetching JSON data...');
@@ -55,7 +58,7 @@ async function main () {
     year = year.replaceAll('+', '') * 1
     node.year = year + 25 // a bit random but this is just a test.
     node.century = Math.floor(node.year / 100) * 100
-    if (node.century < 1200) node.century = 1200
+    if (node.century < 1400) node.century = 1400
   })
 
   const nodeIds = new Set(nodes.map(node => node.id));
@@ -63,11 +66,12 @@ async function main () {
   console.log(`Filtered nodes: ${nodes.length}, links: ${links.length}`);
 
   const Graph = ForceGraph3D()(document.getElementById('3d-graph'));
+  Graph.backgroundColor('#000000')
   Graph.graphData({ nodes, links });
   Graph.enableNodeDrag(false)
   Graph.warmupTicks(20)
   Graph.cooldownTicks(0)
-  Graph.nodeAutoColorBy('century')
+  // Graph.nodeAutoColorBy('century')
   Graph.linkOpacity(0.075)
   Graph.onNodeClick(node => {
     clearTimeout(flying)
@@ -75,24 +79,59 @@ async function main () {
     focusNode(node)
   })
 
-  let threshold = 1800
+  // const bloomPass = new UnrealBloomPass();
+  //   bloomPass.strength = 2;
+  //   bloomPass.radius = 1;
+  //   bloomPass.threshold = 0;
+  //   Graph.postProcessingComposer().addPass(bloomPass);
+
+  let threshold = 2023
   const slider = document.getElementById('slider')
   slider.value = threshold
 
+  let cent = 1700
+  const cslider = document.getElementById('cslider')
+  cslider.value = cent
+
   const nodeIndexMap = new Map()
   nodes.forEach(node => nodeIndexMap.set(node.id, node.year))
+  const nodeIndexC = new Map()
+  nodes.forEach(node => nodeIndexC.set(node.id, node.century))
 
   slider.addEventListener('input', function() {
     threshold = parseInt(slider.value, 10)
-    console.log(`Slider value: ${threshold}`)
     Graph.nodeVisibility(node => node.year < threshold)
     Graph.linkVisibility(link => nodeIndexMap.get(link.source.id) < threshold && nodeIndexMap.get(link.target.id) < threshold)
     document.getElementById('year').innerHTML = threshold
   })
 
+  cslider.addEventListener('input', function() {
+    cent = cslider.value
+    Graph.nodeColor(Graph.nodeColor())
+    Graph.linkColor(Graph.linkColor())
+  })
+
   setTimeout(() => {
     Graph.nodeVisibility(node => node.year < threshold)
     Graph.linkVisibility(link => nodeIndexMap.get(link.source.id) < threshold && nodeIndexMap.get(link.target.id) < threshold)
+    Graph.nodeColor(node => {
+      const colors = [
+        "rgba(74, 20, 140, A)",  // Dark Purple
+        "rgba(25, 118, 210, A)", // Medium Blue
+        "rgba(56, 142, 60, A)",  // Green
+        "rgba(251, 192, 45, A)", // Yellow
+        "rgba(245, 124, 0, A)",  // Orange
+        "rgba(194, 24, 91, A)",  // Pink
+        "rgba(211, 47, 47, A)"   // Red
+      ];
+
+      const alpha = node.century == cent ? 1 : 0.1
+      return colors[node.century / 100 - 14].replace('A', alpha)
+    })
+    Graph.linkColor(link => {
+      const alpha = nodeIndexC.get(link.source.id) == cent && nodeIndexC.get(link.target.id) == cent ? 1 : 0.1
+      return `rgba(255, 255, 255, ${alpha})`
+    })
   }, 1)
 
   function focusNode (node) {
