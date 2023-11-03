@@ -1,6 +1,5 @@
 class CesiumGlobeComponent extends HTMLElement {
   cesiumViewer = null
-  countryToContinent = {}
   zoomLevel = 10000
 
   constructor () {
@@ -9,6 +8,17 @@ class CesiumGlobeComponent extends HTMLElement {
 
     // Set innerHTML with Cesium container and place info div
     const style = `
+      #cesiumContainer {
+        width: 100%;
+        height: 100%;
+        opacity: 0.33;
+        transition: width 0.5s ease-in-out, height 0.5s ease-in-out, opacity 0.5s ease-in;
+      }
+      :host(.active) #cesiumContainer {
+        width: 100%;
+        height: 100%;
+        opacity: 1;
+      }
       #placeInfo {
         position: absolute;
         top: 0;
@@ -26,7 +36,7 @@ class CesiumGlobeComponent extends HTMLElement {
       }
         `
     this.shadowRoot.innerHTML = `<style>${style}</style>
-      <div id="cesiumContainer" style="height: 100%;"></div>
+      <div id="cesiumContainer"></div>
       <div id="placeInfo"></div>
     `;
 
@@ -63,7 +73,7 @@ class CesiumGlobeComponent extends HTMLElement {
     this.shadowRoot.appendChild(cesiumScript)
   }
 
-  initializeCesiumViewer () {
+  async initializeCesiumViewer () {
     const apiKey = this.getAttribute('api-key') || 'your_default_access_token'
     Cesium.Ion.defaultAccessToken = apiKey
 
@@ -87,9 +97,28 @@ class CesiumGlobeComponent extends HTMLElement {
     })
 
     this.cesiumViewer.scene.backgroundColor = Cesium.Color.TRANSPARENT
+    this.cesiumViewer.camera.changed.addEventListener(this.updateZoomLevel.bind(this))
+    this.zoomToWorld()
+  }
+
+  updateZoomLevel () {
+    if (this.machineZoom) return
+    this.toggleActive(true)
+    this.zoomLevel = this.cesiumViewer.camera.positionCartographic.height
+  }
+
+  zoomToWorld () {
+    this.toggleActive(false)
+    this.machineZoom = true
     this.cesiumViewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(0, 0, 10000000)
+      destination: Cesium.Cartesian3.fromDegrees(0, 0, 10000000),
+      complete: () => { this.machineZoom = false }
     })
+  }
+
+  toggleActive (active) {
+    this.active = active
+    this.classList.toggle('active', active)
   }
 
   createHiddenElement () {
@@ -101,14 +130,14 @@ class CesiumGlobeComponent extends HTMLElement {
   showPlaceOnMap (coordinates = []) {
     // Check if the viewer has been initialized
     if (!this.cesiumViewer) return
-    const [latitude, longitude] = coordinates;
-    if (typeof longitude !== 'number' || typeof latitude !== 'number') {
-      this.cesiumViewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(0, 0, 10000000) })
-      return
-    }
+    const [latitude, longitude] = coordinates
+    if (typeof longitude !== 'number' || typeof latitude !== 'number') return this.zoomToWorld()
+    this.machineZoom = true
+    this.toggleActive(true)
     this.cesiumViewer.camera.flyTo({ // Fly the camera to the point
       destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, this.zoomLevel),
       complete: () => {
+        this.machineZoom = false
         // Create a point on the map
         this.cesiumViewer.entities.add({
           position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
@@ -127,7 +156,6 @@ class CesiumGlobeComponent extends HTMLElement {
     const text = (place.name || place.country) ? [place.country, place.name].join(' > ') : ''
     const placeInfo = this.shadowRoot.getElementById('placeInfo')
     placeInfo.classList.toggle('empty', !text)
-    console.log('text', text)
     placeInfo.innerHTML = text
   }
 }
