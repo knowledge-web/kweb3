@@ -25,8 +25,6 @@
     body {
       margin: 0;
       overflow: hidden;
-      /* width: 100%;
-      height: 100%; */
     }
 
     html { /* stars background */
@@ -34,6 +32,8 @@
       background-image: linear-gradient(to right, rgba(0,0,16, 0.85) 0 100%), url(./stars.jpg);
       background-size: cover;
     }
+
+    .hidden { display: none; }
 
     #top-box {
       z-index: 200;
@@ -139,6 +139,7 @@
       background: rgba(255, 255, 255, 0.1);
     }
     kweb-timeline.hidden {
+      display: block; /* counter intuitive */
       height: 25px;
     }
 
@@ -202,12 +203,10 @@
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
   <div id="left-box">
-    <!-- <google-map class="main-map" id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map> -->
+    <google-map class="main-map" id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
     <cesium-globe class="main-map" api-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxNTRmNjQ1MC0xOTIxLTRkM2QtOTNmNC1lZDkxODYxNWE4ODMiLCJpZCI6MTM3NTg3LCJpYXQiOjE2ODM3Mzc5NjB9.KwjcnhYYtZbFEfG-H0TbssroK5gHFKTp8tdhe3EE6JA"></cesium-globe>
-
-    <!-- TODO figure a way to activate this video experiment, a menu? -->
-    <!-- <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px;"></kweb-video> -->
-    <journey-list></journey-list>
+    <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px;"></kweb-video>
+    <journey-list class="hidden"></journey-list>
   </div>
   
   <kweb-bio id="bio"></kweb-bio>
@@ -262,6 +261,85 @@
       }
       document.querySelector('h1.title .subtext').innerHTML = subtext
     })
+  </script>
+
+  <style>
+    #settings-toggle {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      padding: 5px;
+      font-size: 1.5em;
+      background: rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      z-index: 1000;
+      opacity: 0.33;
+    }
+    #settings-toggle:hover {
+      opacity: 1;
+    }
+    #settings {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 300px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 0 24px;
+      box-sizing: border-box;
+      overflow: auto;
+      z-index: 1000;
+    }
+  </style>
+  <div id="settings-toggle" onclick="document.getElementById('settings').classList.toggle('hidden')">⚙️</div>
+  <div id="settings" class="hidden">
+    <h2>Settings</h2>
+    <p><label><input type="checkbox" id="show-googlemap"> Google Map</label></p>
+    <p><label><input type="checkbox" id="show-journey"> Show Journey 🚧</label></p>
+    <p><div id="video-toggle"></div></p>
+  </div>
+  <script>
+    document.addEventListener('click', function(event) {
+      if (event.target.closest('#settings-toggle')) return
+      if (event.target.closest('#settings')) return
+      document.getElementById('settings').classList.add('hidden')
+    })
+
+    function toggleMap ({ showGoogleMap } = {}) {
+      document.getElementById('show-googlemap').checked = showGoogleMap
+      document.querySelector('google-map').style.display = showGoogleMap ? 'block' : 'none'
+      document.querySelector('cesium-globe').style.display = showGoogleMap ? 'none' : 'block'
+      window.localStorage.setItem('settings', JSON.stringify({ showGoogleMap }))
+    }
+
+    function toggleJourney ({ showJourney } = {}) {
+      document.getElementById('show-journey').checked = showJourney
+      document.querySelector('journey-list').classList.toggle('hidden', !showJourney)
+      window.localStorage.setItem('settings', JSON.stringify({ showJourney }))
+    }
+
+    // load settings
+    let settings = window.localStorage.getItem('settings') || JSON.stringify({ showGoogleMap: false })
+    const { showGoogleMap, showJourney } = settings ? JSON.parse(settings) : {}
+    toggleMap({ showGoogleMap })
+    toggleJourney({ showJourney })
+
+    // google map toggle
+    document.getElementById('show-googlemap').addEventListener('change', function(event) {
+      const showGoogleMap = event.target.checked
+      toggleMap({ showGoogleMap })
+    })
+
+    // journey toggle
+    document.getElementById('show-journey').addEventListener('change', function(event) {
+      const showJourney = event.target.checked
+      toggleJourney({ showJourney })
+    })
+
+    // video toggle
+    const enabled = window.location.search.includes('video')
+    const html = enabled ? '<a href="/">close video experiment</a>' : '<a href="?video">open video experiment</a>'
+    document.getElementById('video-toggle').innerHTML = html
   </script>
 </body>
 </html>

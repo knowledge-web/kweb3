@@ -22,9 +22,9 @@ class KWebVideo extends HTMLElement {
   connectedCallback() {
     const enabled = window.location.search.includes('video')
     if (!enabled) {
-      this.shadowRoot.innerHTML = `<div style="margin: 4px;">
-          <a href="?video">video experiment</a>
-        </div>`
+      // this.shadowRoot.innerHTML = `<div style="margin: 4px;">
+      //     <a href="?video">video experiment</a>
+      //   </div>`
       return
     }
     const videoUrl = this.getAttribute('video-url')
