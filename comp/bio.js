@@ -56,8 +56,110 @@ class BioComponent extends HTMLElement {
     this.hovered = {} // node
     this.nodeIds = []
     this.allNodes = {}
-  }
+    this.attachShadow({ mode: 'open' })
+    this.shadowRoot.innerHTML = `<style>
+      * {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      
+      .tabs {
+        position: fixed;
+        top: 0;
+        right: 10px;
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        margin-bottom: 20px;
+        background-color: transparent;
+      }
+      
+      .tab {
+        cursor: pointer;
+        padding: 4px 8px;
+        margin-right: 2px;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px 4px 0 0;
+        border-bottom: 2px solid #ccc;
+        background-color: transparent;
+      }
+      
+      .tab:hover {
+        background-color: #666;
+      }
+      
+      .tab.active {
+        background-color: #444;
+      }
 
+      /* Initially display the first tab content */
+      .tab-content[data-index="0"] {
+        display: block;
+      }
+    
+      * {
+        font-family: 'Source Serif Pro', sans-serif;
+        font-size: 18px;
+      }
+      h1, h2, h3 {
+        font-weight: 700;
+        letter-spacing: 0.025em;
+      }
+      h2 { font-size: 36px; }
+      h3 { font-size: 20px; }
+      h4 { font-size: 16px; }
+      .title {
+        margin-bottom: 4px;
+      }
+      .type {
+        font-size: 20px;
+        padding-bottom: 12px;
+      }
+      .type span {
+        padding: 3px 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+      }
+      .type.empty, .tags.empty {
+        display: none;
+      }
+      .oneliner {
+        font-style: italic;
+        margin-bottom: 16px;
+      }
+      p {
+        line-height: 1.5em;
+        color: rgba(255, 255, 255, 0.9);
+      }
+      a.dead-link { color: #f00; }
+      a.dead-link::after { content: ' 💀'; }
+      a.external-link { color: #008000; }
+      a.external-link::after {
+        content: ' 🔗';
+        font-size: smaller;
+      }
+      .external-link:visited { color: #800080; }
+      li.in-text a { font-weight: bold; }
+      li.only-mentioned::after { content: ' (unlinked mention)'; opacity: 0.5; }
+      img { max-width: 100%; }
+      .icon-title-wrapper {
+        display: flex;
+        align-items: center;
+      }
+      img.icon-small {
+        width: 16px;
+        height: 16px;
+        margin-right: 4px; /* Adjust the margin to position the icon */
+      }
+      img.icon-main {
+        width: 32px;
+        height: 32px;
+        margin-right: 10px; /* Adjust the margin to position the icon */
+      }
+      img.icon[src=""] { display: none; }
+    </style>
+    <div id="bio"></div>`
+  }
   connectedCallback () {
     window.addEventListener('dataLoaded', event => {
       const { nodes } = event.detail
@@ -108,7 +210,7 @@ class BioComponent extends HTMLElement {
 
     nodes = nodes || this.selected.nodes || []
     links = links || this.selected.links || []
-    const bio = document.getElementById('bio')
+    const bio = this.shadowRoot.getElementById('bio')
     if (bio.scrollTop) this.scrollTops[this.selected.node.id] = bio.scrollTop
     if (!node || !node.id) node = this.selected.node
 
@@ -166,110 +268,8 @@ class BioComponent extends HTMLElement {
       wikilinks = `<p>${links.join('<br>')}</p>`
     }
 
-    // FIXME css --> Shadow DOM only
     node.tags = node.tags || []
     bio.innerHTML = `
-      <style>
-        :host * {
-          color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .tabs {
-          position: fixed;
-          top: 0;
-          right: 10px;
-          display: flex;
-          justify-content: start;
-          align-items: center;
-          margin-bottom: 20px;
-          background-color: transparent;
-        }
-        
-        .tab {
-          cursor: pointer;
-          padding: 4px 8px;
-          margin-right: 2px;
-          font-size: 16px;
-          border: none;
-          border-radius: 4px 4px 0 0;
-          border-bottom: 2px solid #ccc;
-          background-color: transparent;
-        }
-        
-        .tab:hover {
-          background-color: #666;
-        }
-        
-        .tab.active {
-          background-color: #444;
-        }
-
-        /* Initially display the first tab content */
-        .tab-content[data-index="0"] {
-          display: block;
-        }
-      
-        * {
-          font-family: 'Source Serif Pro', sans-serif;
-          font-size: 18px;
-        }
-        h1, h2, h3 {
-          font-weight: 700;
-          letter-spacing: 0.025em;
-        }
-        h2 { font-size: 36px; }
-        h3 { font-size: 20px; }
-        h4 { font-size: 16px; }
-        .title {
-          margin-bottom: 4px;
-        }
-        .type {
-          font-size: 20px;
-          padding-bottom: 12px;
-        }
-        .type span {
-          padding: 3px 10px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-        }
-        .type.empty, .tags.empty {
-          display: none;
-        }
-        .oneliner {
-          font-style: italic;
-          margin-bottom: 16px;
-        }
-        :host p {
-          line-height: 1.5em;
-          color: rgba(255, 255, 255, 0.9);
-        }
-        a.dead-link { color: #f00; }
-        a.dead-link::after { content: ' 💀'; }
-        a.external-link { color: #008000; }
-        a.external-link::after {
-          content: ' 🔗';
-          font-size: smaller;
-        }
-        .external-link:visited { color: #800080; }
-        li.in-text a { font-weight: bold; }
-        li.only-mentioned::after { content: ' (unlinked mention)'; opacity: 0.5; }
-        img { max-width: 100%; }
-        .icon-title-wrapper {
-          display: flex;
-          align-items: center;
-        }
-        img.icon-small {
-          width: 16px;
-          height: 16px;
-          margin-right: 4px; /* Adjust the margin to position the icon */
-        }
-        img.icon-main {
-          width: 32px;
-          height: 32px;
-          margin-right: 10px; /* Adjust the margin to position the icon */
-        }
-        img.icon[src=""] { display: none; }
-      </style>
       <div class="icon-title-wrapper">
         <img class="icon icon-main" src="${icon ? icon : ''}" />
         <h2 class="title">${node.name}</h2>
