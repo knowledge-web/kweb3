@@ -10,8 +10,13 @@
 
   <script type="module" src="./comp/google-map.js"></script>
   <!-- <script type="module" src="./comp/cesium-map.js"></script> -->
+  <script type="module" src="./comp/cesium-globe.js"></script>
   <script type="module" src="./comp/journey-list.js"></script>
   <script type="module" src="./comp/kweb-video.js"></script>
+
+  <!-- TODO move to module / component -->
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- TODO move to component -->
   <script type="module" src="./comp/bio.js"></script>
@@ -81,7 +86,7 @@
       top: 0;
       left: 0;
       height: 100%;
-      background-color: rgba(255, 255, 255, 0.05);
+      /* background-color: rgba(255, 255, 255, 0.05); */
     }
     .main-map { /* TODO move to google-map component */
       display: block;
@@ -202,12 +207,14 @@
   <script src="//unpkg.com/3d-force-graph"></script> <!-- TODO move to component -->
   <script src="./comp/3d-graph.js" type="module"></script>
 
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+
   <div id="left-box">
-    <google-map class="main-map" id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map>
+    <!-- <google-map class="main-map" id="myMap" api-key="AIzaSyDhy1d5cJL36CkfjIcgHRDiehuXxbQEFH0"></google-map> -->
     <!-- <cesium-map class="main-map" api-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIxNTRmNjQ1MC0xOTIxLTRkM2QtOTNmNC1lZDkxODYxNWE4ODMiLCJpZCI6MTM3NTg3LCJpYXQiOjE2ODM3Mzc5NjB9.KwjcnhYYtZbFEfG-H0TbssroK5gHFKTp8tdhe3EE6JA"></cesium-map> -->
-    <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px;"></kweb-video>
-    <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.srt"></kweb-video> -->
-    <!-- <kweb-video video-url="/data/vid/Connections.S01E06.ogv" subtitle-url="/data/vid/Connections.S01E06.random.srt"></kweb-video> -->
+    <div id="cesiumContainer" class="main-map"></div>
+    <!-- TODO figure a way to activate this video experiment, a menu? -->
+    <!-- <kweb-video video-url="/data/vid/Knowledge.Web.overview.mkv" subtitle-url="/data/vid/Knowledge.Web.overview.srt" style="width: 550px;"></kweb-video> -->
     <journey-list></journey-list>
   </div>
   
