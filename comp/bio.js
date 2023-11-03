@@ -170,6 +170,10 @@ class BioComponent extends HTMLElement {
     node.tags = node.tags || []
     bio.innerHTML = `
       <style>
+        :host * {
+          color: rgba(255, 255, 255, 0.9);
+        }
+        
         .tabs {
           position: fixed;
           top: 0;
@@ -178,6 +182,7 @@ class BioComponent extends HTMLElement {
           justify-content: start;
           align-items: center;
           margin-bottom: 20px;
+          background-color: transparent;
         }
         
         .tab {
@@ -188,14 +193,15 @@ class BioComponent extends HTMLElement {
           border: none;
           border-radius: 4px 4px 0 0;
           border-bottom: 2px solid #ccc;
+          background-color: transparent;
         }
         
         .tab:hover {
-          background-color: #ddd;
+          background-color: #666;
         }
         
         .tab.active {
-          background-color: #ccc;
+          background-color: #444;
         }
 
         /* Initially display the first tab content */
@@ -223,7 +229,7 @@ class BioComponent extends HTMLElement {
         }
         .type span {
           padding: 3px 10px;
-          background: rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.1);
           border-radius: 8px;
         }
         .type.empty, .tags.empty {
@@ -233,9 +239,9 @@ class BioComponent extends HTMLElement {
           font-style: italic;
           margin-bottom: 16px;
         }
-        p {
+        :host p {
           line-height: 1.5em;
-          color: rgba(0, 0, 0, 0.9);
+          color: rgba(255, 255, 255, 0.9);
         }
         a.dead-link { color: #f00; }
         a.dead-link::after { content: ' 💀'; }

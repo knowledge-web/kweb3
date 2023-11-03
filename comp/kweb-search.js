@@ -31,7 +31,7 @@ class KWebSearch extends HTMLElement {
         }
         input {
           width: 300px;
-          padding: 8px 4px;
+          padding: 8px;
           font-size: 18px;
           background-color: #555;
           color: #fff;
