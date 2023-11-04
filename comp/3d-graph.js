@@ -66,7 +66,7 @@ async function initGraph (raw, options = {}) {
     })
     .linkColor(link => {
       let color = (link.color || 'rgb(255, 255, 255)').replace('rgb', 'rgba').replace(')', ', A)')
-      color = color.replace('A', link.name ? '1.0' : '0.5')
+      color = color.replace('A', link.name ? '1.0' : '1.0') // TODO consider making links with names more prominent
       return color
     })
     .linkWidth(link => highlightLinks.has(link) ? 1 : 0)
