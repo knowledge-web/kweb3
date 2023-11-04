@@ -59,20 +59,24 @@ async function initGraph (raw, options = {}) {
     .linkHoverPrecision(2)
     .nodeColor(node => {
       // node.color || 'rgba(255,255,255,0.8)'
-      if (selectedNode && node.id === selectedNode.id) return 'steelblue'
+      if (selectedNode && node.id === selectedNode.id) return 'steelblue' // TODO instead just alpha 1.0?
       // if (!highlightNodes.has(node)) return 'rgba(255,255,255,0.8)'
       if (node === hoverNode) return 'rgb(255,0,0,1)'
       return node.color || 'rgba(255,255,255,0.8)'
     })
     .linkColor(link => {
-      return link.color || 'white'
+      let color = (link.color || 'rgb(255, 255, 255)').replace('rgb', 'rgba').replace(')', ', A)')
+      color = color.replace('A', link.name ? '1.0' : '0.5')
+      return color
     })
     .linkWidth(link => highlightLinks.has(link) ? 1 : 0)
     // .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 0)
     // .linkDirectionalParticleWidth(1)
 
     .nodeThreeObject(node => {
+      const selected = (selectedNode && node.id === selectedNode.id)
       const nodeEl = document.createElement('div')
+      const link = (selectedNode && node.links && node.links.find(link => link.target === selectedNode.id)) || {} // link to selected
 
       const iconPath = (id) => `/brain/${id}/.data/Icon.png`
       let icon = node.icon && iconPath(node.id)
@@ -84,8 +88,12 @@ async function initGraph (raw, options = {}) {
 
       // const img = 'https://picsum.photos/seed/derp/150/150' // random profile image
       // nodeEl.innerHTML = `${node.name}<br><img class="prof" src="${img}" />`
-      nodeEl.style.color = node.color || 'rgba(255,255,255,0.8)'
-      nodeEl.className = 'node-label'
+      let color = (node.color || 'rgb(255,255,255)').replace('rgb', 'rgba').replace(')', ', A)')
+      color = color.replace('A', selected ? '1.0' : '1.0') // TODO make none selected less prominent... but first hover needs make it more prominent
+      // TODO if link.name ...make more prominent?
+      
+      nodeEl.style.color = color
+      nodeEl.className = 'node-label' // TODO add selected class?
       // nodeEl.setAttribute('data-id', node.id)
       // FIXME the below work but breaks scroll wheel zoom etc...
       // nodeEl.style['pointer-events'] = 'all'
