@@ -131,14 +131,22 @@ class BioComponent extends HTMLElement {
         line-height: 1.5em;
         color: rgba(255, 255, 255, 0.9);
       }
-      a.dead-link { color: #f00; }
-      a.dead-link::after { content: ' 💀'; }
-      a.external-link { color: #008000; }
+      a.dead-link {
+        color: #ff5555; /* A softer red for better contrast on dark backgrounds */
+      }
+      a.dead-link::after {
+        content: ' 💀';
+      }
+      a.external-link {
+        color: #4e9a06; /* A softer green that's easier on the eyes in dark mode */
+      }
       a.external-link::after {
         content: ' 🔗';
         font-size: smaller;
       }
-      .external-link:visited { color: #800080; }
+      .external-link:visited {
+        color: #9558b2; /* A softer purple for visited links */
+      }
       li.in-text a { font-weight: bold; }
       li.only-mentioned::after { content: ' (unlinked mention)'; opacity: 0.5; }
       img { max-width: 100%; }
