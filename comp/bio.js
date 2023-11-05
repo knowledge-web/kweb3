@@ -286,4 +286,15 @@ class BioComponent extends HTMLElement {
   }
 }
 
+window.addEventListener('hashchange', function(event) { // TODO cleanup & onload etc
+  const hash = window.location.hash
+  const BioComponent = document.querySelector('kweb-bio')
+  const shadowRoot = BioComponent.shadowRoot
+  const targetElement = shadowRoot.querySelector(hash)
+  console.log({ hash, BioComponent, shadowRoot, targetElement })
+  if (targetElement) {
+    targetElement.scrollIntoView({ behavior: 'smooth' })
+  }
+})
+
 customElements.define('kweb-bio', BioComponent)
