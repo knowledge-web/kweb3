@@ -60,44 +60,6 @@ class BioComponent extends HTMLElement {
     this.shadowRoot.innerHTML = `<style>
       * {
         color: rgba(255, 255, 255, 0.9);
-      }
-      
-      .tabs {
-        position: fixed;
-        top: 0;
-        right: 10px;
-        display: flex;
-        justify-content: start;
-        align-items: center;
-        margin-bottom: 20px;
-        background-color: transparent;
-      }
-      
-      .tab {
-        cursor: pointer;
-        padding: 4px 8px;
-        margin-right: 2px;
-        font-size: 16px;
-        border: none;
-        border-radius: 4px 4px 0 0;
-        border-bottom: 2px solid #ccc;
-        background-color: transparent;
-      }
-      
-      .tab:hover {
-        background-color: #666;
-      }
-      
-      .tab.active {
-        background-color: #444;
-      }
-
-      /* Initially display the first tab content */
-      .tab-content[data-index="0"] {
-        display: block;
-      }
-    
-      * {
         font-family: 'Source Serif Pro', sans-serif;
         font-size: 18px;
       }
@@ -226,24 +188,10 @@ class BioComponent extends HTMLElement {
     markdown = replaceBrainLinks(markdown)
     let html = marked.parse(markdown) // render markdown
 
-    // Split HTML by <hr> ...a hack, The Brain data is so ...chaotic
-    let sections = html.split(/<hr\s*\/?>/)
-    sections = sections.map(section => section.trim()).filter(Boolean)
-    const getWordCount = str => str.split(/\s+/).filter(Boolean).length
-    const getWikipediaLinkCount = str => (str.match(/https:\/\/en\.wikipedia\.org\/wiki\/[A-Za-z0-9_-]+/g) || []).length
-    const getBrainLinkCount = str => (str.match(/#id=/g) || []).length // NOTE may change to ?id= in the future
-    // NOTE images also; extra points
-    // Create tab controls and tab content containers
-    let tabControls = ''
-    let tabContent = ''
-    sections.forEach((section, index) => {
-      const wordCount = getWordCount(section)
-      const wikipediaLinkCount = getWikipediaLinkCount(section)
-      const brainLinkCount = getBrainLinkCount(section)
-      const title = `Words: ${wordCount}, Wiki: ${wikipediaLinkCount}, Links: ${brainLinkCount}`
-      tabControls += `<button class="tab" data-index="${index}" title="${title}">v${index + 1}</button>`
-      tabContent += `<div class="tab-content" data-index="${index}" style="display: ${index === 0 ? 'block' : 'none'}">${section}</div>`
-    })
+    // TODO show these somewhere?
+    // const nWords = markdown.split(/\s+/).filter(Boolean).length
+    // const nWikilinks = (markdown.match(/https:\/\/en\.wikipedia\.org\/wiki\/[A-Za-z0-9_-]+/g) || []).length
+    // const nBrainlinks = (markdown.match(/#id=/g) || []).length // NOTE may change to ?id= in the future
 
     // Extract 'href="#id=' + link text from html
     const textLinks = [...html.matchAll(/href="#id=([^"]+)">([^<]+)<\/a>/g)].reduce((acc, [, id, text]) => {
@@ -286,15 +234,8 @@ class BioComponent extends HTMLElement {
         <img class="icon icon-small" src="${getIcon(node.typeId)}" /> ${this.allNodes[node.typeId]?.name}
       </span></div>
       <div class="tags ${!node.tags.length ? 'empty' : ''}">Tags: ${node.tags.map(tag => `<span class="tag"><img class="icon icon-small" src="${getIcon(tag.id)}" /> ${tag.name}</span>`).join(', ')}</div>
-      <p class="oneliner">${fomatOneliner(node.label)}</p>
-  
-      <div class="tabs">
-        ${tabControls}
-      </div>
-      <div class="tab-contents">
-        ${tabContent}
-      </div>
-
+      <p class="oneliner">${fomatOneliner(node.label)}</p>  
+      ${html}
       <h3>Links (${neighbors.length})</h3>
       <ul>
         ${neighbors.map(n => `<li class="${Object.keys(textLinks).includes(n.id) ? 'in-text' : ''}${onlyMentioned.includes(n.id) ? 'only-mentioned' : ''}">
@@ -323,18 +264,6 @@ class BioComponent extends HTMLElement {
     bio.querySelectorAll('a[href^="http"]').forEach(link => {
       link.setAttribute('target', '_blank')
       link.classList.add('external-link')
-    })
-
-    const tabs = bio.querySelectorAll('.tab')
-    const tabContentContainers = bio.querySelectorAll('.tab-content')
-    tabs.forEach(tab => {
-      tab.addEventListener('click', function() {
-        const index = parseInt(this.getAttribute('data-index'))
-        tabContentContainers.forEach((container, i) => {
-          container.style.display = i === index ? 'block' : 'none'
-        })
-        tabs.forEach((tab, i) => { tab.classList.toggle('active', i === index) })
-      })
     })
 
     bio.scrollTop = this.scrollTops[node.id] || 0
