@@ -88,7 +88,7 @@ class TimelineVis extends HTMLElement {
       div.toggle {
         position: absolute;
         top: -33px;
-        right: 0;
+        right: 15px;
         padding: 4px;
         cursor: pointer;
         color: rgba(255, 255, 255, 0.5);
