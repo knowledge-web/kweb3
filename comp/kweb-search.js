@@ -1,4 +1,6 @@
 /* global HTMLElement, customElements, document, window */
+import { selectNode } from "../kweb-api.js"
+
 function toMap (arr) { // TODO: move to utils.js - DRY
   const map = {}
   arr.forEach(item => { map[item.id] = item })
@@ -156,7 +158,7 @@ class KWebSearch extends HTMLElement {
 
       div.innerHTML = html
       div.addEventListener('click', () => {
-        window.location.hash = `#id=${node.id}`
+        selectNode(node.id)
         itemsDiv.innerHTML = ''
       })
 
@@ -168,7 +170,7 @@ class KWebSearch extends HTMLElement {
     if (this.nodes.length === 0) return
 
     const randomNode = this.nodes[Math.floor(Math.random() * this.nodes.length)]
-    window.location.hash = `#id=${randomNode.id}`
+    selectNode(randomNode.id)
   }
 }
 

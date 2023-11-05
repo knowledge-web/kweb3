@@ -1,20 +1,21 @@
 /* global customElements, HTMLElement, localStorage */
-function addHoverEventsToLinks (elem) { // FIXME copied from bio.js
-  const links = elem.querySelectorAll('a[href^="#id="]')
+import { selectNode, hoverNode } from "../kweb-api"
+function addEventsToLinks (elem) { // FIXME copied from bio.js
+  const links = elem.querySelectorAll('a[href^="?id="]')
   links.forEach(link => {
+
     link.addEventListener('mouseover', function () {
-      const id = this.getAttribute('href').split('#id=')[1]
-      const node = { id }
-      const event = new CustomEvent('hoverNode', { detail: { node, origin: 'journey' } })
-      window.dispatchEvent(event)
+      hoverNode(id, 'bio')
+    })
+    link.addEventListener('mouseout', function () {
+      const prevNodeId = this.getAttribute('href').split('?id=')[1]
+      hoverNode(null, 'bio', prevNodeId)
     })
 
-    link.addEventListener('mouseout', function () {
-      const id = this.getAttribute('href').split('#id=')[1]
-      const prevNode = { id }
-      const node = {}
-      const event = new CustomEvent('hoverNode', { detail: { node, prevNode, origin: 'journey' } })
-      window.dispatchEvent(event)
+    link.addEventListener('click', function (e) {
+      e.preventDefault()
+      const id = this.getAttribute('href').split('?id=')[1]
+      selectNode(id)
     })
   })
 }
@@ -32,7 +33,7 @@ class JourneyList extends HTMLElement {
     window.addEventListener('nodeSelected', this.nodeSelectedHandler.bind(this))
     window.addEventListener('hoverNode', event => {
       const { node, prevNode } = event.detail
-      const links = this.shadow.querySelectorAll('a[href^="#id="]')
+      const links = this.shadow.querySelectorAll('a[href^="?id="]')
       links.forEach(a => {
         a.classList.remove('hovered')
         if (!node || !node.id) return
@@ -92,7 +93,8 @@ class JourneyList extends HTMLElement {
     this.visitedNodes.pop()
     this.saveState()
     const id = this.visitedNodes[this.visitedNodes.length - 1].node.id
-    window.location.hash = `#id=${id}`
+
+    // window.location.hash = `?id=${id}`
   }
 
   render () {
@@ -157,13 +159,13 @@ class JourneyList extends HTMLElement {
         const classes = []
         if (node === lastVisited.node) classes.push('selected')
         if (this.currentNodes.some(currentNode => currentNode.id === node.id)) classes.push('on-screen')
-        return `<li>${link.name && index !== 0 ? `<span class="link-name">${link.name}</span>` : ''} <a href="#id=${node.id}" class="${classes.join(' ')}">${node.name}</a></li>`
+        return `<li>${link.name && index !== 0 ? `<span class="link-name">${link.name}</span>` : ''} <a href="?id=${node.id}" class="${classes.join(' ')}">${node.name}</a></li>`
       }).join('')}
     </ul>
     `
-    addHoverEventsToLinks(this.shadow)
+    addEventsToLinks(this.shadow)
 
-    const links = this.shadow.querySelectorAll('a[href^="#id="]')
+    const links = this.shadow.querySelectorAll('a[href^="?id="]')
     links.forEach(a => {
       const nodeId = a.getAttribute('href').split('=')[1]
       if (this.currentNodes.some(node => node.id === nodeId)) {

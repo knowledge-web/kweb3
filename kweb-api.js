@@ -3,6 +3,14 @@ let links = {}
 let selectedNode = {}
 // let hoveredNode = {}
 
+function updateQueryParam (key, value, { history } = { history: true }) {
+  const currentURL = new URL(window.location.href)
+  const params = new URLSearchParams(currentURL.search)
+  params.set(key, value)
+  currentURL.search = params.toString()
+  if (history) window.history.pushState({}, '', currentURL.toString())
+}
+
 // let trail = []
 export async function loadData () {
   try {
@@ -22,7 +30,7 @@ export async function loadData () {
   return { nodes, links }
 }
 
-export function selectNode (id) { // selects the node (fetches neighbors, etc. triggers event etc)
+export function selectNode (id, history = true) { // selects the node (fetches neighbors, etc. triggers event etc)
   const node = nodes.find(node => node.id === id)
   if (!node) return console.error(`Node with id ${id} not found`)
   if (node === selectedNode) return console.log(`Node with id ${id} already selected`)
@@ -51,17 +59,16 @@ export function selectNode (id) { // selects the node (fetches neighbors, etc. t
   })
   window.dispatchEvent(nodeSelectedEvent)
 
-  window.location.hash = `#id=${id}` // NOTE will trigger an extra hashchange event :/
+  updateQueryParam('id', id, { history })
   return { node, nodes: allNodes, links: allLinks }
 }
 
-export function hoverNode (id, origin) { // id === null to clear
+export function hoverNode (id, origin, prevNodeId) { // id === null to clear
   const node = id ? nodes.find(node => node.id === id) : {}
   // hoveredNode = mainNode
-
-  const nodeHoveredEvent = new CustomEvent('nodeHovered', {
-    detail: { node, origin }
-  })
+  const detail = { node, origin }
+  if (prevNodeId) detail.prevNode = { id: prevNodeId }
+  const nodeHoveredEvent = new CustomEvent('nodeHovered', { detail })
   window.dispatchEvent(nodeHoveredEvent)
 
   return { node }
@@ -78,11 +85,9 @@ window.addEventListener('hoverNode', event => {
 })
 
 // load all data unless body attribute = "false"
-if (document.body.getAttribute('data-auto-load') !== 'false') {
+if (document.body.getAttribute('data-auto-load')) {
   loadData().then(({ nodes, links }) => {
   }).catch(error => {
     console.error('Error:', error)
   })
-} else {
-  console.log('no load')
 }

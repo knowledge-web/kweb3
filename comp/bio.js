@@ -1,4 +1,5 @@
 /* eslint-env browser */
+import { selectNode, hoverNode } from '../kweb-api.js'
 import { shortToLongId } from '../links.js'
 const { marked } = window
 marked.setOptions({
@@ -25,7 +26,7 @@ function replaceBrainLinks (content) {
   const brainLinkPattern = /brain:\/\/([a-zA-Z0-9_-]+)(?:\/[^<>\[\]\(\)\s]*)?/g
   return content.replace(brainLinkPattern, (match, link) => {
     const longId = shortToLongId(link)
-    return `#id=${longId}`
+    return `?id=${longId}`
   })
 }
 
@@ -152,24 +153,26 @@ class BioComponent extends HTMLElement {
     })
   }
 
-  addHoverEventsToLinks (elem) {
-    const links = elem.querySelectorAll('a[href^="#id="]')
+  addEventsToLinks (elem) {
+    const links = elem.querySelectorAll('a[href^="?id="]')
     links.forEach(link => {
-      const id = link.getAttribute('href').split('#id=')[1]
+      const id = link.getAttribute('href').split('?id=')[1]
       const oneliner = this.allNodes[id]?.label || '[ no one-liner ]'
       link.setAttribute('title', oneliner)
+
       link.addEventListener('mouseover', function () {
-        const node = { id }
-        const event = new CustomEvent('hoverNode', { detail: { node, origin: 'bio' } })
-        window.dispatchEvent(event)
+        hoverNode(id, 'bio')
       })
   
       link.addEventListener('mouseout', function () {
-        const id = this.getAttribute('href').split('#id=')[1]
-        const prevNode = { id }
-        const node = {}
-        const event = new CustomEvent('hoverNode', { detail: { node, prevNode, origin: 'bio' } })
-        window.dispatchEvent(event)
+        const prevNodeId = this.getAttribute('href').split('?id=')[1]
+        hoverNode(null, 'bio', prevNodeId)
+      })
+
+      link.addEventListener('click', function (e) {
+        e.preventDefault()
+        const id = this.getAttribute('href').split('?id=')[1]
+        selectNode(id)
       })
     })
   }  
@@ -191,17 +194,17 @@ class BioComponent extends HTMLElement {
     // TODO show these somewhere?
     // const nWords = markdown.split(/\s+/).filter(Boolean).length
     // const nWikilinks = (markdown.match(/https:\/\/en\.wikipedia\.org\/wiki\/[A-Za-z0-9_-]+/g) || []).length
-    // const nBrainlinks = (markdown.match(/#id=/g) || []).length // NOTE may change to ?id= in the future
+    // const nBrainlinks = (markdown.match(/\?id=/g) || []).length // NOTE may change to ?id= in the future
 
-    // Extract 'href="#id=' + link text from html
-    const textLinks = [...html.matchAll(/href="#id=([^"]+)">([^<]+)<\/a>/g)].reduce((acc, [, id, text]) => {
+    // Extract 'href="?id=' + link text from html
+    const textLinks = [...html.matchAll(/href="\?id=([^"]+)">([^<]+)<\/a>/g)].reduce((acc, [, id, text]) => {
       acc[id] = text
       return acc
     }, {})
     const onlyInText = Object.keys(textLinks).filter(id => !nodes.map(n => n.id).includes(id))
 
     const neighbors = nodes.filter(n => n.id !== node.id)
-    const onlyMentioned = neighbors.filter(({ id, name }) => normalizeString(html).includes(normalizeString(name)) && !html.includes(`href="#id=${id}"`)).map(n => n.id)
+    const onlyMentioned = neighbors.filter(({ id, name }) => normalizeString(html).includes(normalizeString(name)) && !html.includes(`href="?id=${id}"`)).map(n => n.id)
 
     // example .data/md-images/3afdc8c4-0738-4fac-aa63-651d5d2d2097.webp#$width=70p$
     html = html.replaceAll('.data/md-images/', `/brain/${node.id}/.data/md-images/`)
@@ -239,11 +242,11 @@ class BioComponent extends HTMLElement {
       <h3>Links (${neighbors.length})</h3>
       <ul>
         ${neighbors.map(n => `<li class="${Object.keys(textLinks).includes(n.id) ? 'in-text' : ''}${onlyMentioned.includes(n.id) ? 'only-mentioned' : ''}">
-          <a href="#id=${n.id}">${n.name}</a>
+          <a href="?id=${n.id}">${n.name}</a>
         </li>`).join('\n')}
       </ul>
       <h4 style="${onlyInText.length ? '' : 'display: none;'}">Only in text (${onlyInText.length})</h4>
-      <ul>${onlyInText.map(id => `<li><a href="#id=${id}">${textLinks[id]}</a></li>`).join('\n')}</ul>
+      <ul>${onlyInText.map(id => `<li><a href="?id=${id}">${textLinks[id]}</a></li>`).join('\n')}</ul>
 
       ${wikilinks}
       `
@@ -252,12 +255,12 @@ class BioComponent extends HTMLElement {
     // TODO
     // <h4>Likely mentions</h4>
 
-    // Add hover events to all links with #id=<some-id>
-    this.addHoverEventsToLinks(bio)
+    // Add hover events to all links with ?id=<some-id>
+    this.addEventsToLinks(bio)
 
     // highlight dead links
-    bio.querySelectorAll('a[href^="#id="]').forEach(link => {
-      const id = link.getAttribute('href').split('#id=')[1]
+    bio.querySelectorAll('a[href^="?id="]').forEach(link => {
+      const id = link.getAttribute('href').split('?id=')[1]
       if (!this.nodeIds.includes(id)) link.classList.add('dead-link')
     })
     // style external links

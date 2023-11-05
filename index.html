@@ -46,30 +46,6 @@
       left: 350px;
     }
 
-    h1.title {
-      display: none;
-      width: 100%;
-      margin: 0;
-      text-align: center;
-      z-index: 100;
-    }
-    h1.title .text {
-      background-color: rgba(255, 255, 255, 0.75);
-    }
-    h1.title .subtext {
-      background-color: #001;
-      color: rgba(255, 255, 255, 0.75);
-      font-size: 18px;
-      line-height: 0.75em;
-    }
-    h1.title .subtext .link-name {
-      color: rgba(127, 127, 255, 0.75);
-    }
-    h1.title .subtext .link-name.missing {
-      color: rgba(255, 127, 127, 0.75);
-      opacity: 0.75;
-    }
-
     #3d-graph {
       position: absolute;
       width: 67vw;
@@ -171,14 +147,10 @@
   </style>
 
 </head>
-<!-- <body data-auto-load="false"> -- to not auto fetch data -->
+
 <body>
   <div id="top-box">
     <kweb-search style="display: block;"></kweb-search>
-    <h1 class="title">
-      <span class="text">Loading...</span><br>
-      <span class="subtext"></span>
-    </h1>
   </div>
 
   <div id="info-box" style="display: none;">
@@ -219,52 +191,15 @@
   <timeline-vis></timeline-vis>
 
   <script type="module">
-    import { selectNode, hoverNode } from './kweb-api.js'
+    import { loadData, selectNode } from './kweb-api.js'
     const rootId = '335994d7-2aff-564c-9c20-d2c362e82f8c' // The Knowledge Web (node)
-
-    // let all = { nodes: [], links: []}
-    let current = { node: {}, nodes: [], links: []}
-    function findLocalLink (node1, node2) {
-      const match = current.links.find(link => {
-        const source = typeof link.source === 'object' ? link.source.id : link.source // XXX graph is changing these?
-        const target = typeof link.target === 'object' ? link.target.id : link.target // XXX graph is changing these?
-        return (source === node1 && target === node2) || (source === node2 && target === node1)
-      })
-      return match || {}
-    }
-
-    window.addEventListener('dataLoaded', function(event) {
-      const { nodes, links } = event.detail
-      // all = { nodes, links }
-      const id = window.location.hash.split('#id=')[1] || rootId
+    loadData().then(({ nodes, links }) => {
+      const id = (new URLSearchParams(window.location.search)).get('id') || rootId
       selectNode(id)
-
-      window.addEventListener('hashchange', function(event) {
-        const id = window.location.hash.split('#id=')[1] || rootId
-        selectNode(id)
-      })
     })
-
-    let selected = {}
-    window.addEventListener('nodeSelected', function(event) {
-      const { node, nodes, links } = event.detail
-      selected = node
-      current = { node, nodes, links }
-      // console.log(`Node selected: ${node.name}`)
-      document.querySelector('h1.title .text').innerHTML = node.name
-    })
-
-    window.addEventListener('nodeHovered', function(event) {
-      let { node } = event.detail
-      if (node.id === selected.id) return
-      // console.log(`Node hovered: ${node.name}`)
-      let subtext = ''
-      if (node.id) {
-        const link = findLocalLink(selected.id, node.id)
-        subtext = `<span class="link-name ${!link.name ? 'missing' : ''}">${link.name || '[ unknown link ]'} </span>`
-        subtext += node.name
-      }
-      document.querySelector('h1.title .subtext').innerHTML = subtext
+    window.addEventListener('popstate', function(event) {
+      const id = (new URLSearchParams(window.location.search)).get('id') || rootId
+      selectNode(id, false)
     })
   </script>
 
