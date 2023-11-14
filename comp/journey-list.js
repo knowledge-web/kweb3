@@ -1,5 +1,5 @@
 /* global customElements, HTMLElement, localStorage */
-import { selectNode, hoverNode } from "../kweb-api"
+import { selectNode, hoverNode } from "../kweb-api.js"
 function addEventsToLinks (elem) { // FIXME copied from bio.js
   const links = elem.querySelectorAll('a[href^="?id="]')
   links.forEach(link => {
