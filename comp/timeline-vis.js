@@ -93,7 +93,7 @@ class TimelineVis extends HTMLElement {
         cursor: pointer;
         color: rgba(255, 255, 255, 0.5);
         background: rgba(0, 0, 0, 0.5);
-        z-index: 100;
+        z-index: 150;
       }
     `
 
