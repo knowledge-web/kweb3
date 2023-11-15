@@ -34,6 +34,13 @@ class CesiumGlobeComponent extends HTMLElement {
       #placeInfo.empty {
         display: none;
       }
+      .cesium-widget canvas {
+        width: 100%;
+        height: 300px;
+      }
+      .cesium-credit-lightbox, .cesium-credit-lightbox * {
+        display: none !important;
+      }
         `
     this.shadowRoot.innerHTML = `<style>${style}</style>
       <div id="cesiumContainer"></div>
@@ -49,28 +56,7 @@ class CesiumGlobeComponent extends HTMLElement {
   }
 
   connectedCallback () {
-    // Check if Cesium scripts are already loaded
-    if (typeof Cesium === 'undefined') {
-      this.loadCesiumScripts()
-    } else {
-      this.initializeCesiumViewer()
-    }
-  }
-
-  loadCesiumScripts () {
-    // Load Cesium.js
-    const cesiumScript = document.createElement('script')
-    cesiumScript.src = 'https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Cesium.js'
-    cesiumScript.onload = () => {
-      // Load widgets.css
-      const widgetsLink = document.createElement('link')
-      widgetsLink.href = 'https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Widgets/widgets.css'
-      widgetsLink.rel = 'stylesheet'
-      this.shadowRoot.appendChild(widgetsLink)
-
-      this.initializeCesiumViewer()
-    }
-    this.shadowRoot.appendChild(cesiumScript)
+    this.initializeCesiumViewer()
   }
 
   async initializeCesiumViewer () {
@@ -79,7 +65,6 @@ class CesiumGlobeComponent extends HTMLElement {
 
     // Initialize the Cesium Viewer in the cesiumContainer
     this.cesiumViewer = new Cesium.Viewer(this.shadowRoot.getElementById('cesiumContainer'), {
-      // terrain: Cesium.createWorldTerrain(),
       animation: false,
       skyBox: false,
       skyAtmosphere: false,
