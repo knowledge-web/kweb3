@@ -287,7 +287,7 @@ class TimelineVis extends HTMLElement {
       await delay(step);
     }
 
-    items.update([{ id: newZ.id, group: 0 }]) // NOTE may already have been done (group zero stuff above)
+    if (newZ) items.update([{ id: newZ.id, group: 0 }]) // NOTE may already have been done (group zero stuff above)
 
     // Find the item with group=0, if it exists
     const groupZeroItem = items.get({ filter: item => item.group === 0 })[0];
